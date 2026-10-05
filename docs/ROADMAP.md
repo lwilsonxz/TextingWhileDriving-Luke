@@ -139,8 +139,9 @@ Rules this format encodes:
   Programmers own a list of available ones in the guide.
 - **Naming:** node titles `Contact_Scene_Beat`, one file per contact per level, variables `$snake_case`.
 
-Typing starts as an **exact match** (see Decisions). Still open for A1: whether `Me:` text can contain
-emoji or punctuation that's hard to type.
+Typing starts as an **exact match** (see Decisions). `Me:` lines may contain emoji and hard-to-type
+punctuation as a difficulty lever. The guide should state which characters are fair game at each
+difficulty tier.
 
 ### A2. Writer setup (½ day)
 - Install VS Code + the **Yarn Spinner** extension and clone the fork (writers are comfortable with git).
@@ -266,11 +267,14 @@ a win state, and at least one story variable that carries into a second short dr
 | Writers | Comfortable with git; standard branch + PR workflow | — |
 | Platform | Windows only | If other platforms become worth it |
 | Branches | Descriptive names (e.g. `roadmap-doc`), merged to `main` by PR within the fork | — |
+| World while phone is up | **Keeps moving.** Texting while the car is moving is the core challenge and the core marketing hook. | — |
+| Hard-to-type characters | **Allowed** (emoji, unusual punctuation, etc.) as part of a difficulty curve where both texting and driving get harder in later levels | — |
 
 ## Open questions
 
-1. **Does the world pause** when the phone is up? (I assume no; that's the premise.)
-2. **Emoji and hard-to-type punctuation** in `Me:` lines: allowed, and if so how are they typed?
+1. **How are hard characters typed?** Options include an on-screen emoji picker, shortcodes
+   (`:skull:`), or the phone's "long-press" alternate characters. This needs settling in B2, and the
+   validation script (A3) should know which characters are allowed at each difficulty tier.
 
 ---
 
