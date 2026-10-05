@@ -9,9 +9,13 @@ extends Control
 ## - Back returns to the start of the previous node with its variables; Restart replays from the start.
 ## - Hidden #timeout choices and choices whose condition is false are shown greyed out, so they can be tested.
 
+## Where to look for Yarn projects, and which one to open first.
 const DIALOGUE_ROOT := "res://"
 const DEFAULT_PROJECT := "res://dialogue/Dialogue.yarnproject"
 
+# The pieces that play a conversation: the phone screen (view), the bridge from
+# Yarn to the screen (presenter), Yarn's dialogue runner, and where it keeps the
+# story variables (storage). The runner and storage are replaced per project.
 var view: ChatView
 var presenter: ChatPresenter
 var runner: YarnDialogueRunner
@@ -22,8 +26,9 @@ var _nodes: Array[Dictionary] = []      # {title, file, entry}
 var _declared := {}                     # "$name" -> default value
 var _history: Array[Dictionary] = []    # {node, variables} at each node start
 var _log_lines: Array[String] = []
-var _restoring := false
+var _restoring := false                 # true while Back/Restart replays a node
 
+# The controls in the left-hand panel, created in _build().
 var _project_picker: OptionButton
 var _filter: LineEdit
 var _node_list: ItemList
@@ -38,8 +43,10 @@ var _hook_editors := {}                 # function name -> Control
 
 func _ready() -> void:
 	_build()
+	# Show game commands (like <<start_thread>>) in our log instead of running them.
 	DialogueHooks.command_listener = _on_command
 	_rebuild_hook_editors()
+	# Fill the project picker and open the real game's dialogue by default.
 	var projects := _find_projects(DIALOGUE_ROOT)
 	for path in projects:
 		_project_picker.add_item(path.trim_prefix("res://"))
@@ -49,6 +56,7 @@ func _ready() -> void:
 		select_project(projects[maxi(start, 0)])
 
 
+# Put DialogueHooks back to normal so the fakes don't leak into the real game.
 func _exit_tree() -> void:
 	if DialogueHooks.command_listener == Callable(self, "_on_command"):
 		DialogueHooks.command_listener = Callable()
@@ -57,6 +65,8 @@ func _exit_tree() -> void:
 
 # --- public API (buttons call these; so do the tests) ---------------------------
 
+## Loads a Yarn project: reads its nodes and variables, and makes a fresh
+## dialogue runner for it (Yarn ties a runner to one project).
 func select_project(path: String) -> void:
 	await stop()
 	_project_path = path
@@ -67,6 +77,8 @@ func select_project(path: String) -> void:
 	_declared = _read_declarations(path.get_base_dir())
 	_history.clear()
 	view.clear()
+	# Build the new runner before freeing the old one, so the presenter always
+	# has somewhere to live (it moves from the old runner to the new one).
 	var old_runner := runner
 	var old_storage := storage
 	storage = YarnInMemoryVariableStorage.new()
@@ -93,6 +105,7 @@ func select_project(path: String) -> void:
 	_log_line("Loaded %s: %d nodes, %d variables" % [path.trim_prefix("res://"), _nodes.size(), _declared.size()])
 
 
+## Starts a conversation from `node`, keeping the current variable values.
 func play(node: String) -> void:
 	await stop()
 	view.clear()
@@ -100,6 +113,7 @@ func play(node: String) -> void:
 	runner.start_dialogue(node)
 
 
+## Stops the conversation that's playing, if any.
 func stop() -> void:
 	if runner != null and runner.is_running():
 		await runner.stop_dialogue()
@@ -124,6 +138,7 @@ func restart() -> void:
 	await _jump_to(first)
 
 
+## Puts every story variable back to its starting value from Variables.yarn.
 func reset_variables() -> void:
 	storage.clear()
 	for variable in _declared:
@@ -131,6 +146,7 @@ func reset_variables() -> void:
 	_refresh_variables()
 
 
+## Changes a story variable (what the editors in the "Story variables" panel do).
 func set_variable(variable: String, value: Variant) -> void:
 	storage.set_value(variable, value)
 	_refresh_variables()
@@ -140,6 +156,8 @@ func get_variable(variable: String) -> Variant:
 	return storage.get_value(variable)
 
 
+## Makes a game function (e.g. ran_stop_sign()) return `value` in conversations,
+## and updates its control in the "Fake game state" panel to match.
 func set_fake(function: String, value: Variant) -> void:
 	DialogueHooks.fakes[function] = value
 	var editor: Control = _hook_editors.get(function)
@@ -176,8 +194,10 @@ func log_lines() -> Array[String]:
 
 # --- runner events ---------------------------------------------------------------
 
+# Every time Yarn enters a node, remember the variables at that moment so Back
+# can return here. (Not when Back/Restart itself is replaying a node.)
 func _on_node_started(node_name: String) -> void:
-	view.set_title(node_name.get_slice("_", 0))
+	view.set_title(node_name.get_slice("_", 0))  # "Mom_L1_Start" -> "Mom"
 	if not _restoring:
 		_history.append({"node": node_name, "variables": _snapshot()})
 	_restoring = false
@@ -194,6 +214,7 @@ func _on_command(command: String, args: Array) -> void:
 	_log_line("<<%s %s>> (the game would run this)" % [command, " ".join(args.map(func(a): return str(a)))])
 
 
+# Replays a node from the history with the variables it had then.
 func _jump_to(entry: Dictionary) -> void:
 	await stop()
 	view.clear()
@@ -205,6 +226,7 @@ func _jump_to(entry: Dictionary) -> void:
 	runner.start_dialogue(entry.node)
 
 
+# The current value of every declared story variable.
 func _snapshot() -> Dictionary:
 	var values := {}
 	for variable in _declared:
@@ -212,6 +234,7 @@ func _snapshot() -> Dictionary:
 	return values
 
 
+# Adds a line to the log panel (and to log_lines(), for tests).
 func _log_line(text: String) -> void:
 	_log_lines.append(text)
 	if _log != null:
@@ -220,6 +243,7 @@ func _log_line(text: String) -> void:
 
 # --- reading the Yarn project ---------------------------------------------------
 
+# Every .yarnproject in the game (skipping addons), for the project picker.
 func _find_projects(dir_path: String) -> Array[String]:
 	var found: Array[String] = []
 	var dir := DirAccess.open(dir_path)
@@ -235,6 +259,7 @@ func _find_projects(dir_path: String) -> Array[String]:
 	return found
 
 
+# Every .yarn file in a folder and its subfolders.
 func _yarn_files(dir_path: String) -> Array[String]:
 	var files: Array[String] = []
 	var dir := DirAccess.open(dir_path)
@@ -251,9 +276,11 @@ func _yarn_files(dir_path: String) -> Array[String]:
 
 
 ## Node titles, marking entry points: nodes nothing jumps to, which the game starts.
+## We read the .yarn text directly (rather than asking Yarn) because we also want
+## to know which nodes are jumped to, to mark the rest as entry points.
 func _read_nodes(project_dir: String) -> Array[Dictionary]:
 	var nodes: Array[Dictionary] = []
-	var referenced := {}
+	var referenced := {}  # titles that some <<jump>>, <<detour>> or <<start_thread>> points at
 	var reference := RegEx.create_from_string("<<\\s*(?:jump|detour)\\s+(\\w+)|<<\\s*start_thread\\s+\\S+\\s+(\\w+)")
 	for path in _yarn_files(project_dir):
 		for line in FileAccess.get_file_as_string(path).split("\n"):
@@ -266,6 +293,7 @@ func _read_nodes(project_dir: String) -> Array[Dictionary]:
 				referenced[m.get_string(1) if m.get_string(1) != "" else m.get_string(2)] = true
 	for node in nodes:
 		node.entry = not referenced.has(node.title)
+	# Entry points first, then alphabetical.
 	nodes.sort_custom(func(a, b): return (a.entry and not b.entry) or (a.entry == b.entry and a.title < b.title))
 	return nodes
 
@@ -276,6 +304,7 @@ func _read_declarations(project_dir: String) -> Dictionary:
 	var declare := RegEx.create_from_string("<<\\s*declare\\s+(\\$\\w+)\\s*=\\s*(.+?)\\s*>>")
 	for path in _yarn_files(project_dir):
 		for m in declare.search_all(FileAccess.get_file_as_string(path)):
+			# Turn the starting value's text into a real bool, number or string.
 			var raw := m.get_string(2)
 			var value: Variant = raw
 			if raw == "true" or raw == "false":
@@ -290,6 +319,7 @@ func _read_declarations(project_dir: String) -> Dictionary:
 
 # --- UI ---------------------------------------------------------------------------
 
+# Fills the node list, applying the filter box.
 func _refresh_node_list() -> void:
 	_node_list.clear()
 	var filter := _filter.text.to_lower()
@@ -301,6 +331,9 @@ func _refresh_node_list() -> void:
 		_node_list.set_item_tooltip(index, node.file + ("\nEntry point: the game starts this node." if node.entry else ""))
 
 
+# Updates the variable editors to show the current values (the conversation may
+# have changed them). Doesn't fire their change signals, and leaves a text box
+# alone while someone is typing in it.
 func _refresh_variables() -> void:
 	for variable in _variable_editors:
 		var editor: Control = _variable_editors[variable]
@@ -313,6 +346,8 @@ func _refresh_variables() -> void:
 			editor.text = str(value)
 
 
+# One editor per declared variable: a checkbox, number box or text box,
+# depending on its starting value.
 func _rebuild_variable_editors() -> void:
 	for child in _variables_box.get_children():
 		child.queue_free()
@@ -325,6 +360,8 @@ func _rebuild_variable_editors() -> void:
 	_refresh_variables()
 
 
+# One editor per game function in DialogueHooks, starting at false / 0 / "".
+# Every function is faked while the playtest runs: there's no game to ask.
 func _rebuild_hook_editors() -> void:
 	for child in _hooks_box.get_children():
 		child.queue_free()
@@ -339,6 +376,7 @@ func _rebuild_hook_editors() -> void:
 		_hook_editors[function.name] = editor
 
 
+# A control for editing a value of `value`'s type; calls on_change with the new value.
 func _editor_for(value: Variant, on_change: Callable) -> Control:
 	if value is bool:
 		var box := CheckBox.new()
@@ -367,6 +405,8 @@ func _small_label(text: String) -> Label:
 	return label
 
 
+# Creates the layout: settings and lists in a scrolling panel on the left, the
+# phone (ChatView) in the middle of the rest of the screen.
 func _build() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	var background := ColorRect.new()

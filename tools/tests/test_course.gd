@@ -55,6 +55,7 @@ func _initialize() -> void:
 	quit(0 if _failures == 0 else 1)
 
 
+# Loads a fresh copy of the course and records the Course's signals in _events.
 func _load_level() -> void:
 	level = load(LEVEL).instantiate()
 	root.add_child(level)
@@ -83,6 +84,7 @@ func _place_car(where: Vector3) -> void:
 	car.angular_velocity = Vector3.ZERO
 
 
+# The text currently shown on the course HUD.
 func _hud_text() -> String:
 	for child in course.get_children():
 		if child is CanvasLayer:

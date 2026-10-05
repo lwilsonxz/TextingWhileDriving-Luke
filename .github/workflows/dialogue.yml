@@ -20,10 +20,15 @@ on:
       - ".github/workflows/dialogue.yml"
   workflow_dispatch:
 
+# Each step uses the same tools a developer installs (see the README's Setup).
+# Godot itself is cached between runs. Godot commands go through
+# tools/ci/run_godot.sh, which also fails on any printed script error and on
+# a hang.
 jobs:
   validate:
     runs-on: ubuntu-latest
     env:
+      # Keep these in step with the README and tools/setup_yarn_spinner.*.
       GODOT_VERSION: "4.6.3"
       YSC_VERSION: "3.2.2"
     steps:
