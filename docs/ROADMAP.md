@@ -37,7 +37,7 @@ for failure to obey traffic laws, as well as texting challenges."*
 | `global.gd` | Autoload with a single `is_driving` bool toggled by key `5` | Replace with a real game-state autoload. |
 | `victory_screen.tscn` | "YOU WIN" label | Placeholder. |
 
-**Repo hygiene (do first, ~1 hour):**
+**Repo hygiene** (✅ done in B0, except Git LFS):
 - 169 files under `TextingWhileDriving/.godot/` are committed even though `.gitignore` lists them.
   Run `git rm -r --cached TextingWhileDriving/.godot`.
 - Six editor `*.tmp` files are committed (`cars/Dog*.tmp`, `pho917E.tmp`, `camBA0D.tmp`). Delete them and ignore `*.tmp`.
@@ -188,15 +188,41 @@ on the phone) takes about **2–3 weeks** of one programmer's focused time.
 conversations of 2–3 branches each, where **driving and texting pressure each other**. It has a fail state,
 a win state, and at least one story variable that carries into a second short drive and changes what's said.
 
-### B0. Foundation (1–2 days)
-- Repo hygiene from section 1, then upgrade to Godot 4.6.x
-- Folder structure: `game/` (car, phone, levels, rules), `dialogue/`, `tools/`, `docs/`
-- Input map for everything (no raw keycodes). Starting control scheme is the **hybrid**: a gamepad
-  drives the car while mouse and keyboard work the phone. Keep driving and phone input in separate
-  input actions so other schemes (keyboard-only, mouse steering) can be playtested by swapping bindings.
+### B0. Foundation ✅ done
+- **Repo hygiene:** the `.godot` cache and editor `*.tmp` files are no longer committed. `main.tscn`
+  pointed straight into the import cache for one texture; it now points at the source image, so a fresh
+  clone works. The Car-Demo README was replaced and its licence moved next to the car code.
+  (Git LFS not adopted yet.)
+- **Godot 4.6.3:** the project is upgraded (new `.uid` files for scripts, refreshed `.import`
+  settings), and the Yarn Spinner plugin is enabled, installed by `tools/setup_yarn_spinner.*`. The plugin
+  generates `dialogue/Dialogue.ysls.json` from the game hooks, for VS Code autocomplete.
+- **Layout:** `TextingWhileDriving/game/{car,levels,phone,rules,ui,world}` plus `dialogue/`; see the
+  root README. Unused Car-Demo screenshots were removed.
+- **Input map** (hybrid scheme):
+
+  | Action | Gamepad | Keyboard |
+  |---|---|---|
+  | `drive_accelerate` / `drive_reverse` | RT / LT | ↑ / ↓ |
+  | `drive_steer_left` / `drive_steer_right` | left stick | ← / → |
+  | `drive_handbrake` | B | Right Ctrl |
+  | `camera_front_view` / `_rear_view` / `_left_window_view` | D-pad ↑ / ↓ / ← | F3 / F1 / F2 |
+  | `camera_phone_view` | LB | F4 |
+  | `phone_send` / `phone_delete` | | Enter / Backspace |
+  | `debug_toggle_driving` | | F5 |
+
+  Camera and debug keys moved off `1`–`5`, and the handbrake off Space, because those are needed for
+  typing. `BaseCar.gd` now uses actions instead of raw keys. A headless drive test showed the same
+  behaviour as before (↑ drives forward, ↓ brakes/reverses). The old typing code in `phone.gd` still
+  reads raw keys; B2 replaces it.
+- **Scene smoke check:** `tools/check_scenes.gd` loads and runs every scene and fails on any error.
+  CI (`.github/workflows/project.yml`) runs it on every PR that touches the game.
 
 ### B1. Driving core (3–5 days)
-- Clean up `BaseCar.gd`: input map, sane speed units, tuning exports
+- Clean up `BaseCar.gd`: sane speed units and tuning exports. **Bug found in B0:** its speed estimate
+  multiplies by the *rendering* frame rate (`Engine.get_frames_per_second()`), so acceleration changes
+  with FPS. A headless test drove ~10% further or shorter depending on frame rate. Use
+  `linear_velocity.length()` directly. Also consider analog throttle now that triggers are bound.
+- Fix `main.tscn` instancing `phone.tscn` twice (both copies receive keystrokes)
 - Camera: position/rotation preset pairs, with "glance at phone" vs "eyes on road" as the main toggle.
   A hold-to-look mode is worth testing.
 - One course built from the GridMap road kit, plus start, checkpoints and finish trigger

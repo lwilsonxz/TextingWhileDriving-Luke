@@ -2,17 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b1ipy2uni5nj3"
-path.s3tc="res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.s3tc.ctex"
+uid="uid://dqm022h73jhsb"
+path.s3tc="res://.godot/imported/roads-v4_Asphalt025C_1K-JPG_Roughness.png-482c41225b82c094e36b30ae4bd3cfba.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
+generator_parameters={
+"md5": "e5d7c996e668318d82affe3f72b43cdb"
+}
 
 [deps]
 
-source_file="res://icon.svg"
-dest_files=["res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.s3tc.ctex"]
+source_file="res://game/world/models/roads-v4_Asphalt025C_1K-JPG_Roughness.png"
+dest_files=["res://.godot/imported/roads-v4_Asphalt025C_1K-JPG_Roughness.png-482c41225b82c094e36b30ae4bd3cfba.s3tc.ctex"]
 
 [params]
 
@@ -39,6 +42,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=0
-svg/scale=1.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

@@ -10,6 +10,11 @@
 
 ## Project
 
-- Godot game project in `TextingWhileDriving/`. GDScript only (no C#), Windows only.
+- Godot 4.6.3 project in `TextingWhileDriving/` (game code in `game/`, dialogue in `dialogue/`).
+  GDScript only (no C#), Windows only. Setup steps are in the root README.
+- The Yarn Spinner addon (`addons/yarn_spinner/`) is never committed (licence). Install it with
+  `tools/setup_yarn_spinner.sh`. Bump the pinned commit there to upgrade.
+- Before pushing, run the checks in the README's "Checks" section (dialogue validator, scene smoke
+  check). CI runs both.
 - Plans and decisions live in `docs/ROADMAP.md`. Check its Decisions table before proposing changes
   to settled choices.

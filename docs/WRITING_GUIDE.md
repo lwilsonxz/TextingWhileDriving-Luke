@@ -177,7 +177,7 @@ and levels, and are saved with the game.
 
 Only use functions and commands from the list below; the validator rejects anything else. If you need
 a new one, ask a programmer; adding one is quick. (Programmers: they live in
-`TextingWhileDriving/phone/dialogue_hooks.gd` as `static func _yarn_function_*` / `_yarn_command_*`.
+`TextingWhileDriving/game/phone/dialogue_hooks.gd` as `static func _yarn_function_*` / `_yarn_command_*`.
 The validator reads them from there.)
 
 | Name | Kind | What it does | Status |

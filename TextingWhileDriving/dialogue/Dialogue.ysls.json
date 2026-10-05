@@ -1,0 +1,101 @@
+{
+  "Functions": [
+    {
+      "DefinitionName": "_yarn_function_ran_stop_sign",
+      "Documentation": "true if the player ran the most recent stop sign.",
+      "FileName": "dialogue_hooks.gd",
+      "Language": "gdscript",
+      "Location": {
+        "end": {
+          "character": 13,
+          "line": 17
+        },
+        "start": {
+          "character": 0,
+          "line": 15
+        }
+      },
+      "Parameters": [],
+      "ReturnType": "bool",
+      "YarnName": "ran_stop_sign"
+    },
+    {
+      "DefinitionName": "_yarn_function_violations",
+      "Documentation": "Number of traffic violations so far this level.",
+      "FileName": "dialogue_hooks.gd",
+      "Language": "gdscript",
+      "Location": {
+        "end": {
+          "character": 9,
+          "line": 23
+        },
+        "start": {
+          "character": 0,
+          "line": 21
+        }
+      },
+      "Parameters": [],
+      "ReturnType": "number",
+      "YarnName": "violations"
+    }
+  ],
+  "commands": [
+    {
+      "async": true,
+      "definitionName": "_cmd_wait",
+      "documentation": "Pauses the dialogue for the given number of seconds.",
+      "fileName": "dialogue_runner.gd",
+      "language": "gdscript",
+      "location": {
+        "end": {
+          "character": 37,
+          "line": 1702
+        },
+        "start": {
+          "character": 0,
+          "line": 1699
+        }
+      },
+      "parameters": [
+        {
+          "documentation": "How long to wait, in seconds.",
+          "isParamsArray": false,
+          "name": "duration",
+          "type": "number"
+        }
+      ],
+      "yarnName": "wait"
+    },
+    {
+      "async": false,
+      "definitionName": "_yarn_command_start_thread",
+      "documentation": "<<start_thread Thread Node>>: start another conversation, e.g. a second contact texts in.",
+      "fileName": "dialogue_hooks.gd",
+      "language": "gdscript",
+      "location": {
+        "end": {
+          "character": 93,
+          "line": 28
+        },
+        "start": {
+          "character": 0,
+          "line": 27
+        }
+      },
+      "parameters": [
+        {
+          "isParamsArray": false,
+          "name": "thread",
+          "type": "string"
+        },
+        {
+          "isParamsArray": false,
+          "name": "node",
+          "type": "string"
+        }
+      ],
+      "yarnName": "start_thread"
+    }
+  ],
+  "version": 2
+}

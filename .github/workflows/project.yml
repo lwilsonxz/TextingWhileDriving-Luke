@@ -1,27 +1,25 @@
-name: Dialogue
+name: Project
 
-# Checks every dialogue file against docs/WRITING_GUIDE.md, and shows problems
-# inline on pull requests.
+# Imports the Godot project and runs every scene for a few frames, failing on
+# any error. Catches broken paths, missing resources and errors in _ready().
 on:
   pull_request:
     paths:
-      - "TextingWhileDriving/dialogue/**"
-      - "TextingWhileDriving/game/phone/dialogue_hooks.gd"
-      - "docs/writing/**"
-      - "tools/**"
-      - ".github/workflows/dialogue.yml"
+      - "TextingWhileDriving/**"
+      - "tools/check_scenes.gd"
+      - "tools/setup_yarn_spinner.sh"
+      - ".github/workflows/project.yml"
   push:
     branches: [main]
     paths:
-      - "TextingWhileDriving/dialogue/**"
-      - "TextingWhileDriving/game/phone/dialogue_hooks.gd"
-      - "docs/writing/**"
-      - "tools/**"
-      - ".github/workflows/dialogue.yml"
+      - "TextingWhileDriving/**"
+      - "tools/check_scenes.gd"
+      - "tools/setup_yarn_spinner.sh"
+      - ".github/workflows/project.yml"
   workflow_dispatch:
 
 jobs:
-  validate:
+  scenes:
     runs-on: ubuntu-latest
     env:
       GODOT_VERSION: "4.6.3"
@@ -56,8 +54,11 @@ jobs:
       - name: Add Godot to PATH
         run: echo "$HOME/godot" >> "$GITHUB_PATH"
 
-      - name: Test the validator
-        run: godot --headless --script tools/tests/test_dialogue_validator.gd
+      - name: Install the Yarn Spinner addon
+        run: tools/setup_yarn_spinner.sh TextingWhileDriving
 
-      - name: Validate dialogue
-        run: godot --headless --script tools/validate_dialogue.gd
+      - name: Import the project
+        run: godot --headless --path TextingWhileDriving --import
+
+      - name: Run every scene
+        run: godot --headless --path TextingWhileDriving --script res://../tools/check_scenes.gd
