@@ -3,10 +3,10 @@
 [ext_resource type="PackedScene" uid="uid://ci52bv1m15cbs" path="res://game/car/Doge.tscn" id="1_car"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
-size = Vector3(2000, 2, 2000)
+size = Vector3(20000, 2, 20000)
 
 [sub_resource type="BoxMesh" id="BoxMesh_ground"]
-size = Vector3(2000, 2, 2000)
+size = Vector3(20000, 2, 20000)
 
 [node name="FlatGround" type="Node3D"]
 

@@ -16,21 +16,24 @@ const STOPPED_SPEED := 1.0
 @export var steer_speed := 1.5
 
 @export_group("Engine")
+# Defaults are tuned to feel like an ordinary road car (measured on flat ground):
+# 0–100 km/h in about 9 s, top speed about 140 km/h, 100–0 km/h in about 3.3 s.
+
 ## Engine force once the car is up to speed.
-@export var cruise_force := 40.0
+@export var cruise_force := 45.0
 ## Extra pull from a standstill: force is cruise_force × boost ÷ speed (m/s),
 ## never below cruise_force or above max_force.
 @export var launch_boost := 10.0
 @export var reverse_boost := 3.0
-@export var max_force := 300.0
+@export var max_force := 65.0
 ## Engine force fades out over the last 15% below these speeds.
-@export var top_speed_kmh := 150.0
-@export var reverse_top_speed_kmh := 30.0
+@export var top_speed_kmh := 160.0
+@export var reverse_top_speed_kmh := 25.0
 
 @export_group("Brakes")
 ## Brake when pressing the opposite direction to travel.
-@export var brake_force := 4.0
-@export var handbrake_force := 3.0
+@export var brake_force := 1.2
+@export var handbrake_force := 1.0
 ## Rear wheel grip, normally and with the handbrake on (lower = slides more).
 @export var rear_grip := 3.0
 @export var handbrake_rear_grip := 0.8

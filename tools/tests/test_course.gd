@@ -42,7 +42,7 @@ func _initialize() -> void:
 	var label: Label = car.get_node("Hud/traffic_violation")
 	_check(label.text == "", "no violation at the start")
 	Input.action_press("drive_accelerate")
-	await _ticks(60 * 4)
+	await _ticks(60 * 9)  # the stop sign is ~70 m ahead; about 80 km/h when we reach it
 	Input.action_release("drive_accelerate")
 	_check(car.global_position.z < level.get_node("StopSign").global_position.z - 5,
 		"the car drove past the stop sign (z %.0f)" % car.global_position.z)
