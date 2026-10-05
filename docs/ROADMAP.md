@@ -249,9 +249,8 @@ a win state, and at least one story variable that carries into a second short dr
 - **New behaviour:**
   - **Analog triggers:** half trigger means half power.
   - **Brake, then reverse:** pressing the opposite direction brakes, then reverses.
-  - **Top speeds:** 150 km/h forward, 30 km/h reverse. Before, reverse had no limit and reached
-    ~190 km/h.
-  - **Brakes:** strong enough to matter (136 → 43 km/h in 1 s).
+  - **Realistic speeds:** 0–100 km/h in ~9 s (was 1.4 s), top speed ~140 km/h, 100–0 km/h in
+    3.3 s over 43 m, reverse capped at 25 km/h (before, reverse had no limit and reached ~190 km/h).
   - **HUD:** shows real km/h.
 - **Tuning:** every value is an export with a description. The car's tuning now lives in `Doge.tscn`
   (it was overrides inside one level), as do its phone and the "TRAFFIC VIOLATION" label, so any level
@@ -270,15 +269,18 @@ a win state, and at least one story variable that carries into a second short dr
     modes.
   - `test_course.gd` checks the checkpoint order and finish rules and drives through the stop sign.
 
-**For playtesting (tuning, not bugs):**
-- The car is very quick: 0 → 136 km/h in 2 s. All values are exports on the `car` node in `Doge.tscn`.
-- Phone glance: toggle vs hold.
-- The in-car phone is a large upright panel in the middle of the dashboard that blocks part of the
-  road. Its size and placement are B2 work.
+**Playtest options** (`Settings` autoload, saved between sessions):
+- **F6** switches the phone glance between **toggle** and **hold**.
+- **F7** cycles the phone between five **placements**: dash mount, vent mount, centre console, lap
+  and windshield. They trade how far the eyes leave the road against how much road the phone hides.
+  The phone is now real size (it was 0.38 × 0.8 m), faces the driver, and the glance aims and zooms
+  at it, so a new placement is one line in `PhoneMount.PLACEMENTS`.
+- A short note on screen confirms each change. Tests check that every placement's glance centres
+  the phone, and that the keys and saving work.
+- The car's tuning values are all exports on `BaseCar.gd`, with a comment on what they produce.
 
 ### B2. Phone core (5–8 days)
-- Size and place the in-car phone (today it's a large upright panel blocking the dashboard), and aim
-  `CarCamera`'s phone view at it
+- Pick a default phone placement and glance mode after playtesting the F6/F7 options (B1)
 - Put `ChatView` (built in A4) on the phone's SubViewport instead of the old typing test
 - Phone UI in the existing SubViewport-on-quad: message bubbles, scrolling history, typing
   indicator, option buttons

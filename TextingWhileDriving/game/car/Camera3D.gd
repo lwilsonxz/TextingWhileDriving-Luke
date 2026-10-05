@@ -19,7 +19,8 @@ const REAR := &"rear"
 const LEFT_WINDOW := &"left_window"
 const PHONE := &"phone"
 
-## Position and rotation (radians) of each view, relative to the car.
+## Default position and rotation (radians) of each view, relative to the car.
+## The phone view is re-aimed by PhoneMount at wherever the phone is.
 const VIEWS := {
 	ROAD: {"position": Vector3(-0.283, 1.199, 0.459), "rotation": Vector3(0, 0, 0)},
 	REAR: {"position": Vector3(0, 2, 5), "rotation": Vector3(0, 0, 0)},
@@ -29,18 +30,39 @@ const VIEWS := {
 
 ## How the phone button works. Both are worth playtesting (docs/ROADMAP.md, B1).
 @export var phone_glance := PhoneGlance.TOGGLE
+## Follow Settings.phone_glance (F6 in game switches it). Turn off to pin it.
+@export var follow_settings := true
 ## How quickly the camera reaches a new view. Higher is snappier.
 @export var glide_speed := 6.0
 
 var view := ROAD
+## This camera's own copy of VIEWS, so each car can aim its phone view.
+var views := VIEWS.duplicate(true)
+## Field of view for views that don't set their own.
+var _base_fov := 75.0
 
 
 func _ready() -> void:
+	var settings := get_node_or_null("/root/Settings")
+	if follow_settings and settings != null:
+		phone_glance = settings.phone_glance
+		settings.changed.connect(func(setting):
+			if setting == &"phone_glance":
+				phone_glance = settings.phone_glance)
+	_base_fov = fov
 	_snap_to(view)
 
 
+## Changes where a view looks from and to, and optionally its field of view
+## in degrees (PhoneMount uses this to aim and zoom the phone view).
+func set_view_pose(view_name: StringName, view_position: Vector3, view_rotation: Vector3, view_fov := 0.0) -> void:
+	views[view_name] = {"position": view_position, "rotation": view_rotation}
+	if view_fov > 0.0:
+		views[view_name].fov = view_fov
+
+
 func set_view(new_view: StringName) -> void:
-	if new_view == view or not VIEWS.has(new_view):
+	if new_view == view or not views.has(new_view):
 		return
 	view = new_view
 	view_changed.emit(view)
@@ -58,10 +80,11 @@ func snap_to(new_view: StringName) -> void:
 
 func _process(delta: float) -> void:
 	_read_input()
-	var target: Dictionary = VIEWS[view]
+	var target: Dictionary = views[view]
 	var weight := 1.0 - exp(-glide_speed * delta)  # same glide at any frame rate
 	position = position.lerp(target.position, weight)
 	quaternion = quaternion.slerp(Quaternion.from_euler(target.rotation), weight)
+	fov = lerpf(fov, target.get("fov", _base_fov), weight)
 
 
 func _read_input() -> void:
@@ -82,6 +105,7 @@ func _read_input() -> void:
 				set_view(ROAD)
 
 
-func _snap_to(name: StringName) -> void:
-	position = VIEWS[name].position
-	quaternion = Quaternion.from_euler(VIEWS[name].rotation)
+func _snap_to(view_name: StringName) -> void:
+	position = views[view_name].position
+	quaternion = Quaternion.from_euler(views[view_name].rotation)
+	fov = views[view_name].get("fov", _base_fov)

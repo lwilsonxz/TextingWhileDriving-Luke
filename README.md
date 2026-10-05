@@ -24,6 +24,19 @@ told through the conversations on your phone. Built with Godot 4.6 (GDScript onl
 4. Open `TextingWhileDriving/project.godot` in Godot and press F5. The main scene is the test course
    (`game/levels/test_course.tscn`); `game/levels/main.tscn` is the old sandbox with ramps.
 
+## Playing
+
+| | Gamepad | Keyboard |
+|---|---|---|
+| Accelerate / brake & reverse | RT / LT | ↑ / ↓ |
+| Steer | left stick | ← / → |
+| Handbrake | B | Right Ctrl |
+| Look at the phone | LB | F4 |
+| Road / rear / left window view | D-pad ↑ / ↓ / ← | F3 / F1 / F2 |
+
+Playtest options (saved between sessions): **F6** switches the phone glance between toggle and hold,
+**F7** moves the phone to the next placement.
+
 ## Layout
 
 ```

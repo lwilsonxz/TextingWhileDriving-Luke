@@ -157,7 +157,7 @@ func _test_camera() -> void:
 	await _tap("camera_phone_view")
 	_check(camera.is_looking_at_phone(), "toggle mode: pressing the phone button looks at the phone")
 	await create_timer(1.5).timeout
-	var target := Quaternion.from_euler(CarCamera.VIEWS[CarCamera.PHONE].rotation)
+	var target := Quaternion.from_euler(camera.views[CarCamera.PHONE].rotation)
 	_check(camera.quaternion.angle_to(target) < 0.05, "the camera glides to the phone view")
 	await _tap("camera_phone_view")
 	_check(camera.view == CarCamera.ROAD, "pressing again looks back at the road")
@@ -177,6 +177,41 @@ func _test_camera() -> void:
 	_check(changes == [CarCamera.PHONE, CarCamera.ROAD, CarCamera.PHONE, CarCamera.ROAD, CarCamera.REAR, CarCamera.ROAD],
 		"view_changed fires once per change (got %s)" % [changes])
 	camera.phone_glance = CarCamera.PhoneGlance.TOGGLE
+
+	print("")
+	print("Phone placements and playtest settings:")
+	var settings := root.get_node("Settings")
+	var saved_glance: int = settings.phone_glance
+	var saved_placement: StringName = settings.phone_placement
+	var mount: PhoneMount = car.get_node("PhoneMount")
+	var center := Vector2(root.size) / 2.0
+	for placement in PhoneMount.PLACEMENTS:
+		mount.apply(placement)
+		camera.snap_to(CarCamera.PHONE)
+		await _frames(2)
+		var screen := mount.screen_center()
+		var on_screen := camera.unproject_position(screen)
+		var off_center := (on_screen - center).length() / center.y
+		_check(not camera.is_position_behind(screen) and off_center < 0.15,
+			"%s: the phone glance centres the phone (%.0f%% off centre)" % [placement, off_center * 100])
+		camera.snap_to(CarCamera.ROAD)
+
+	settings.set_phone_glance(CarCamera.PhoneGlance.TOGGLE)
+	await _tap("debug_cycle_phone_glance")
+	_check(camera.phone_glance == CarCamera.PhoneGlance.HOLD, "F6 switches the phone glance to hold")
+	await _tap("debug_cycle_phone_glance")
+	_check(camera.phone_glance == CarCamera.PhoneGlance.TOGGLE, "and back to toggle")
+	settings.set_phone_placement(&"dash_mount")
+	await _frames(1)
+	var before := mount.position
+	await _tap("debug_cycle_phone_placement")
+	_check(settings.phone_placement == &"vent_mount" and mount.placement == &"vent_mount" and mount.position != before,
+		"F7 moves the phone to the next placement (now %s)" % settings.phone_placement)
+	var saved := ConfigFile.new()
+	saved.load(settings.FILE)
+	_check(saved.get_value("phone", "placement", "") == "vent_mount", "settings are saved for next time")
+	settings.set_phone_glance(saved_glance)
+	settings.set_phone_placement(saved_placement)
 
 
 ## Sends a real press and release, delivered at the start of a frame like
