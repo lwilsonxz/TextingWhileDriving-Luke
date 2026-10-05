@@ -5,7 +5,7 @@ extends SceneTree
 ##   godot --headless --script tools/validate_dialogue.gd
 ## Options (after `--`):
 ##   --dialogue <dir>   dialogue folder (default: TextingWhileDriving/dialogue)
-##   --hooks <file>     game hooks script (default: TextingWhileDriving/game/phone/dialogue_hooks.gd)
+##   --hooks <file>     game hooks script (default: TextingWhileDriving/dialogue/dialogue_hooks.gd)
 ##   --ysc <path>       Yarn compiler (default: ysc on PATH)
 ##   --strict           fail on warnings too
 ##   --quiet            only print problems, no per-file report
@@ -17,7 +17,7 @@ func _initialize() -> void:
 	var repo_root := ProjectSettings.globalize_path(get_script().resource_path).get_base_dir().get_base_dir()
 	var options := {
 		"dialogue": repo_root.path_join("TextingWhileDriving/dialogue"),
-		"hooks": repo_root.path_join("TextingWhileDriving/game/phone/dialogue_hooks.gd"),
+		"hooks": repo_root.path_join("TextingWhileDriving/dialogue/dialogue_hooks.gd"),
 		"ysc": "ysc", "strict": false, "quiet": false,
 	}
 	var args := OS.get_cmdline_user_args()

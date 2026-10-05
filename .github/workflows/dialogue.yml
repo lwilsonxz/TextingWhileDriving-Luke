@@ -6,7 +6,7 @@ on:
   pull_request:
     paths:
       - "TextingWhileDriving/dialogue/**"
-      - "TextingWhileDriving/game/phone/dialogue_hooks.gd"
+      - "TextingWhileDriving/dialogue/dialogue_hooks.gd"
       - "docs/writing/**"
       - "tools/**"
       - ".github/workflows/dialogue.yml"
@@ -14,7 +14,7 @@ on:
     branches: [main]
     paths:
       - "TextingWhileDriving/dialogue/**"
-      - "TextingWhileDriving/game/phone/dialogue_hooks.gd"
+      - "TextingWhileDriving/dialogue/dialogue_hooks.gd"
       - "docs/writing/**"
       - "tools/**"
       - ".github/workflows/dialogue.yml"
@@ -57,7 +57,7 @@ jobs:
         run: echo "$HOME/godot" >> "$GITHUB_PATH"
 
       - name: Test the validator
-        run: godot --headless --script tools/tests/test_dialogue_validator.gd
+        run: tools/ci/run_godot.sh godot --headless --script tools/tests/test_dialogue_validator.gd
 
       - name: Validate dialogue
-        run: godot --headless --script tools/validate_dialogue.gd
+        run: tools/ci/run_godot.sh godot --headless --script tools/validate_dialogue.gd

@@ -7,6 +7,7 @@ on:
     paths:
       - "TextingWhileDriving/**"
       - "tools/check_scenes.gd"
+      - "tools/ci/**"
       - "tools/tests/test_dialogue_playtest.gd"
       - "tools/setup_yarn_spinner.sh"
       - ".github/workflows/project.yml"
@@ -15,6 +16,7 @@ on:
     paths:
       - "TextingWhileDriving/**"
       - "tools/check_scenes.gd"
+      - "tools/ci/**"
       - "tools/tests/test_dialogue_playtest.gd"
       - "tools/setup_yarn_spinner.sh"
       - ".github/workflows/project.yml"
@@ -60,10 +62,10 @@ jobs:
         run: tools/setup_yarn_spinner.sh TextingWhileDriving
 
       - name: Import the project
-        run: godot --headless --path TextingWhileDriving --import
+        run: tools/ci/run_godot.sh godot --headless --path TextingWhileDriving --import
 
       - name: Run every scene
-        run: godot --headless --path TextingWhileDriving --script res://../tools/check_scenes.gd
+        run: tools/ci/run_godot.sh godot --headless --path TextingWhileDriving --script res://../tools/check_scenes.gd
 
       - name: Test the dialogue playtest scene
-        run: godot --headless --path TextingWhileDriving --script res://../tools/tests/test_dialogue_playtest.gd
+        run: tools/ci/run_godot.sh godot --headless --path TextingWhileDriving --script res://../tools/tests/test_dialogue_playtest.gd

@@ -169,6 +169,15 @@ Built along the way, and reused by B2 and A5:
 Tests: `tools/tests/test_dialogue_playtest.gd` plays the sample end to end (choices, typing with a
 typo, Back, faked hooks, timeouts, delays, player vs writer mode) and runs in CI.
 
+Fixed along the way:
+- **Hooks moved to `dialogue/dialogue_hooks.gd`.** The Yarn plugin only writes game hooks into
+  `Dialogue.ysls.json` (writers' VS Code autocomplete) for scripts inside the Yarn project's folder.
+  After B0 moved the hooks to `game/phone/`, any regeneration would have silently emptied it. A
+  validator test now fails if that file is missing any hook.
+- **CI runs Godot through `tools/ci/run_godot.sh`**, which also fails on any printed GDScript error
+  and times out hung runs. A runtime error inside game code doesn't change Godot's exit code, and a
+  script that errors before `quit()` hangs.
+
 ### A5. Runtime integration layer (3–5 days, overlaps with B2)
 - `PhoneService` autoload: owns all threads, the shared story variables, and save/load
 - `PhoneThread`: one per contact. It wraps a dialogue runner, stores message history, and emits

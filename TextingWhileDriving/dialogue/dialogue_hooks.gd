@@ -8,6 +8,10 @@ extends RefCounted
 ## typed and documented: the `##` comment shows up in writers' autocomplete.
 ## When adding one, also add it to the table in docs/WRITING_GUIDE.md §8.
 ##
+## This file must stay in the dialogue/ folder: the Yarn Spinner plugin only
+## writes the hooks into Dialogue.ysls.json (writers' VS Code autocomplete)
+## for scripts inside the Yarn project's folder.
+##
 ## The bodies are placeholders until the prototype's PhoneService (roadmap A5)
 ## and traffic rules (B3) exist. The playtest scene fakes functions through
 ## `fakes` and shows commands through `command_listener`.
@@ -45,7 +49,7 @@ static func _yarn_command_start_thread(thread: String, node: String) -> void:
 ## The game's functions, for tools: [{name, type}] where type is a Variant.Type.
 static func list_functions() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	var script: Script = load("res://game/phone/dialogue_hooks.gd")
+	var script: Script = load("res://dialogue/dialogue_hooks.gd")
 	for method in script.get_script_method_list():
 		if method.name.begins_with("_yarn_function_"):
 			result.append({"name": method.name.trim_prefix("_yarn_function_"), "type": method["return"].type})

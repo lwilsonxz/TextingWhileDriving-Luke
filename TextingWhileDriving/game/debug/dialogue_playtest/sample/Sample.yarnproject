@@ -4,5 +4,8 @@
         "**/*.yarn"
     ],
     "baseLanguage": "en",
-    "definitions": "Sample.ysls.json"
+    "definitions": [
+        "../../../../dialogue/Dialogue.ysls.json",
+        "Sample.ysls.json"
+    ]
 }
