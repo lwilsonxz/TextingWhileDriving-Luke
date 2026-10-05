@@ -148,14 +148,35 @@ inline on the PR.
 - **Tests:** `tools/tests/test_dialogue_validator.gd` checks the writing-guide template passes and
   every marked problem in `tools/tests/fixtures/invalid/` is reported, and nothing else
 
-### A4. Dialogue Playtest scene (3–5 days), the writers' main tool
-`res://tools/dialogue_playtest.tscn` is a standalone scene that needs no driving:
-- Pick any `.yarnproject` node from a list and play it in the **real phone UI**
-- Toggle "skip typing" (auto-send) vs "real typing challenge"
-- Variable inspector: view and edit `$variables` live, and fake gameplay functions
-  (e.g. force `ran_stop_sign()` to return true)
-- Restart from node, plus a history/back button
-- Writers open Godot 4.6 and run this one scene (F6). Later we can ship it as a standalone build.
+### A4. Dialogue Playtest scene ✅ done
+`game/debug/dialogue_playtest/dialogue_playtest.tscn` (F6), described for writers in
+[WRITING_GUIDE §11](WRITING_GUIDE.md#11-playtesting-on-the-phone):
+- Pick a Yarn project and node (entry points marked) and play it on the phone UI
+- Typing challenge with typo feedback, or **Skip typing**; real `#delay`s, or **Skip delays**
+- Writer mode shows hidden `#timeout` choices and false-condition choices, greyed out with notes
+- Editable story variables, faked game functions (`ran_stop_sign()`, `violations()`), a command log
+- **Back** (previous node with its variables) and **Restart**
+
+Built along the way, and reused by B2 and A5:
+- `game/phone/conversation/ChatView`: the phone conversation control (bubbles, typing indicator,
+  choices, reply countdown, typing challenge). It's a 2D control, so B2 can put it on the in-car
+  phone's SubViewport.
+- `ChatPresenter`: the Yarn presenter implementing the writing guide (`Me:`/`System:`, `#delay` with
+  a 1–3 s default, hidden `#timeout` auto-pick).
+- `TypingRule`: exact match for now. Typo-tolerance experiments go here.
+- `DialogueHooks.fakes` / `command_listener`, so tools can stand in for the game.
+
+Tests: `tools/tests/test_dialogue_playtest.gd` plays the sample end to end (choices, typing with a
+typo, Back, faked hooks, timeouts, delays, player vs writer mode) and runs in CI.
+
+Fixed along the way:
+- **Hooks moved to `dialogue/dialogue_hooks.gd`.** The Yarn plugin only writes game hooks into
+  `Dialogue.ysls.json` (writers' VS Code autocomplete) for scripts inside the Yarn project's folder.
+  After B0 moved the hooks to `game/phone/`, any regeneration would have silently emptied it. A
+  validator test now fails if that file is missing any hook.
+- **CI runs Godot through `tools/ci/run_godot.sh`**, which also fails on any printed GDScript error
+  and times out hung runs. A runtime error inside game code doesn't change Godot's exit code, and a
+  script that errors before `quit()` hangs.
 
 ### A5. Runtime integration layer (3–5 days, overlaps with B2)
 - `PhoneService` autoload: owns all threads, the shared story variables, and save/load

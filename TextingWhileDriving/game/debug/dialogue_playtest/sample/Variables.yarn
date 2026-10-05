@@ -1,0 +1,9 @@
+// Every story variable is declared here, once, for the whole game.
+// Copy this file to dialogue/Variables.yarn. Add a line (with a comment) when you add a variable.
+// Naming: $<thread>_<what>, snake_case, e.g. $mom_trust. Use $story_<what> for things not tied to one person.
+
+title: Variables
+---
+<<declare $mom_trust = 3>>             // placeholder: how much Mom trusts the player (0-5)
+<<declare $mom_l1_answered = false>>   // placeholder: did the player answer Mom in level 1?
+===

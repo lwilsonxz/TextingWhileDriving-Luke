@@ -27,11 +27,13 @@ told through the conversations on your phone. Built with Godot 4.6 (GDScript onl
 
 ```
 TextingWhileDriving/          the Godot project
-├── dialogue/                 conversations, written in Yarn (see docs/WRITING_GUIDE.md)
+├── dialogue/                 conversations, written in Yarn (see docs/WRITING_GUIDE.md), plus
+│                             dialogue_hooks.gd: what dialogue can ask the game or tell it to do
 └── game/
     ├── car/                  the car, its cameras and models
+    ├── debug/                developer tools, e.g. the dialogue playtest scene
     ├── levels/               playable scenes (main.tscn is the test track)
-    ├── phone/                the in-car phone, plus dialogue_hooks.gd (what dialogue can ask the game)
+    ├── phone/                the in-car phone and its conversation UI
     ├── rules/                traffic rules (stop signs, ...)
     ├── ui/                   menus and screens
     └── world/                roads, signs and other level pieces
@@ -51,6 +53,12 @@ godot --headless --script tools/validate_dialogue.gd
 # Scenes: loads and runs every scene, fails on any error (import the project once first)
 godot --headless --path TextingWhileDriving --import
 godot --headless --path TextingWhileDriving --script res://../tools/check_scenes.gd
+
+# Dialogue playtest scene and phone UI, end to end
+godot --headless --path TextingWhileDriving --script res://../tools/tests/test_dialogue_playtest.gd
+
+# Validator tests
+godot --headless --script tools/tests/test_dialogue_validator.gd
 ```
 
 ## Credits

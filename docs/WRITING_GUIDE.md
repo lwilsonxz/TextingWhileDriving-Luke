@@ -23,8 +23,8 @@ game turns these files into the conversations on the in-game phone.
    Command Palette (`Ctrl+Shift+P`) and type "Yarn Spinner" to find the graph command. In the graph
    you can drag nodes around and colour-code them, and it stays in sync with the text.
 
-To also play conversations on the in-game phone (the playtest scene, coming in roadmap A4), you'll need
-Godot 4.6 and a one-time compiler install. See [A0 results §6](spikes/A0-yarn-spinner.md#things-to-know-and-where-they-go-in-the-roadmap).
+To also play conversations on the in-game phone (§11), follow the root README's setup: Godot 4.6.3,
+the Yarn compiler, and `tools/setup_yarn_spinner` once.
 
 ---
 
@@ -177,7 +177,7 @@ and levels, and are saved with the game.
 
 Only use functions and commands from the list below; the validator rejects anything else. If you need
 a new one, ask a programmer; adding one is quick. (Programmers: they live in
-`TextingWhileDriving/game/phone/dialogue_hooks.gd` as `static func _yarn_function_*` / `_yarn_command_*`.
+`TextingWhileDriving/dialogue/dialogue_hooks.gd` as `static func _yarn_function_*` / `_yarn_command_*`.
 The validator reads them from there.)
 
 | Name | Kind | What it does | Status |
@@ -222,3 +222,34 @@ It lists problems as `file:line: error [code] message`, then a table per file: w
 characters the player types, and how many typed lines are easy/medium/hard (§5). It also lists the
 **entry points**: nodes nothing jumps to, which the game must start. Check that this matches the
 conversations you expect each level to start.
+
+---
+
+## 11. Playtesting on the phone
+
+The **dialogue playtest** plays any conversation on the in-game phone, without driving.
+
+1. Open `TextingWhileDriving/project.godot` in Godot 4.6.
+2. Open `game/debug/dialogue_playtest/dialogue_playtest.tscn` and press **F6** (Run Current Scene).
+3. Pick the Yarn project at the top. `dialogue/Dialogue.yarnproject` is the real game; the sample project
+   is the template from this guide. Then double-click a node. ★ marks entry points, the nodes the
+   game starts.
+
+While it plays:
+
+- **Typing:** click a choice, then type the `Me:` text and press Enter. Typos show in red and won't
+  send. Tick **Skip typing** to send `Me:` lines automatically when you're checking the story, not
+  the typing.
+- **Timing:** `#delay`s play for real (with "… is typing"). Tick **Skip delays** to make messages arrive
+  instantly.
+- **Hidden choices are shown greyed out, with a note:** the `#timeout` choice (click it to test that
+  branch, or wait for it to be picked) and choices whose `<<if>>` is false. Players never see these.
+- **Story variables** can be changed at any time, e.g. set `$mom_trust` low to test that branch.
+  **Reset variables** puts them back to their starting values.
+- **Fake game state** decides what game functions return, e.g. tick `ran_stop_sign()` to play
+  the "you ran the stop sign" branch.
+- **Back** returns to the start of the previous node with the variables it had then. **Restart**
+  replays from the first node.
+- The **log** shows each node as it starts, and commands like `<<start_thread>>` that the game would run.
+
+After editing a `.yarn` file, switch back to Godot (it recompiles automatically), then play again.

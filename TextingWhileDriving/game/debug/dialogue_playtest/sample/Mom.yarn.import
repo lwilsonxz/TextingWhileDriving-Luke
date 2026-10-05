@@ -1,0 +1,14 @@
+[remap]
+
+importer="yarn_spinner.yarn_file"
+type="Resource"
+uid="uid://dw36ogf6qw24v"
+path="res://.godot/imported/Mom.yarn-3a8e7faf3b89a80f66c217f0b4a8ba95.res"
+
+[deps]
+
+source_file="res://game/debug/dialogue_playtest/sample/Mom.yarn"
+dest_files=["res://.godot/imported/Mom.yarn-3a8e7faf3b89a80f66c217f0b4a8ba95.res"]
+
+[params]
+

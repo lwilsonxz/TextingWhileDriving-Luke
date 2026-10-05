@@ -1,0 +1,54 @@
+// TEMPLATE: copy this file to dialogue/<level>/<Thread>.yarn and replace the placeholder text.
+// Every node title starts with the thread name and level: <Thread>_<Level>_<Beat>.
+// See docs/WRITING_GUIDE.md for the full rules.
+
+title: Mom_L1_Start
+---
+// Incoming messages. #delay is the gap (in seconds) before the message arrives;
+// the typing indicator shows during the gap.
+Mom: placeholder first message #delay:2
+Mom: placeholder second message #delay:1
+
+// A choice: short labels are what the player picks from.
+// The Me: lines underneath are the exact text the player then has to type.
+-> Placeholder label one
+    Me: placeholder text the player types
+    <<set $mom_l1_answered to true>>
+    <<jump Mom_L1_ReplyOne>>
+-> Placeholder label two
+    Me: placeholder first message to type
+    Me: placeholder second message to type
+    <<jump Mom_L1_ReplyTwo>>
+-> Placeholder label three <<if $mom_trust >= 2>>
+    // Only offered when the condition is true.
+    Me: placeholder text for the conditional option
+    <<jump Mom_L1_ReplyOne>>
+-> (no reply) #timeout:15
+    // Hidden. Picked automatically if the player hasn't chosen within 15 seconds.
+    <<set $mom_trust to $mom_trust - 1>>
+    <<jump Mom_L1_Ignored>>
+===
+
+title: Mom_L1_ReplyOne
+---
+Mom: placeholder reply #delay:3
+===
+
+title: Mom_L1_ReplyTwo
+---
+// A pause with no typing indicator (someone stepped away from their phone).
+<<wait 5>>
+Mom: placeholder reply after a silence
+// A forced reply: no choice, the player just has to type it.
+Me: placeholder forced reply
+===
+
+title: Mom_L1_Ignored
+---
+<<if ran_stop_sign()>>
+    Mom: placeholder line that only appears if the player ran the stop sign #delay:2
+<<else>>
+    Mom: placeholder line otherwise #delay:2
+<<endif>>
+System: placeholder system notice
+===

@@ -1,0 +1,11 @@
+{
+    "projectFileVersion": 4,
+    "sourceFiles": [
+        "**/*.yarn"
+    ],
+    "baseLanguage": "en",
+    "definitions": [
+        "../../../../dialogue/Dialogue.ysls.json",
+        "Sample.ysls.json"
+    ]
+}
