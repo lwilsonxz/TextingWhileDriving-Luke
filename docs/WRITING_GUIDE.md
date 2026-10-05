@@ -1,7 +1,7 @@
 # Writing Guide: the texting screenplay format
 
-> Status: **draft (roadmap step A1)**, for the lead writer to review. Items marked **(proposed)** are
-> convention choices that can be changed. Anything else is a hard requirement of the engine.
+> Status: **draft (roadmap step A1)**. Items marked **(proposed)** are convention choices still
+> open for review. Anything else is a hard requirement of the engine.
 
 This is how conversations are written for the game. You write in plain text files using **Yarn**, a
 screenplay-like format, in VS Code. VS Code shows the branches as a graph while you write. The
@@ -42,6 +42,8 @@ TextingWhileDriving/dialogue/
 
 - **Thread:** one conversation on the phone, like a contact or a group chat. The game starts
   threads (e.g. "when the player reaches the bridge, start `Mom_L1_Start`").
+- **Thread names** in file names and node titles have no spaces: the thread with John Doe is
+  `JohnDoe.yarn` / `JohnDoe_L1_Start`, even though his messages are written `John Doe: …`.
 - **Node titles:** `<Thread>_<Level>_<Beat>`, e.g. `Mom_L1_Start`, `Mom_L1_Ignored`,
   `Family_L2_Dinner`. Titles must be unique across the *whole game*, and the prefix keeps them
   unique. Use letters, digits and `_` only.
@@ -59,8 +61,10 @@ TextingWhileDriving/dialogue/
 
 - **One message per line.** Several lines in a row become several bubbles.
 - **Don't** write lines with no sender. Every line needs `Name:` (the validator will enforce this).
-- **Sender names (proposed):** one word, matching the thread name where it's a 1-on-1
-  (`Mom`, `BestFriend`). The player is always `Me`.
+- **Sender names:** everything before the first `:` is the name, so names can be several words and
+  include punctuation: `John Doe: hi`, `Dr. Jane O'Neil-Smith: hi`. **Don't put quotes around names.**
+  `"John Doe": hi` is misread, and the line comes out garbled (tested). Colons later in the message
+  are fine (`Mom: meet at 5:30`). The player is always `Me`.
 
 ---
 
@@ -82,7 +86,8 @@ TextingWhileDriving/dialogue/
 - Several `Me:` lines means the player types several messages in a row.
 - **Conditional choices:** add `<<if ...>>` after the label to only offer it sometimes:
   `-> Apologise <<if $mom_trust < 2>>`.
-- **How many (proposed):** 2–4 visible choices. The phone screen is small and the player is driving.
+- **How many:** 1–4 visible choices. A single choice still makes the player pick it before typing,
+  which is different from a forced reply (below), where there's nothing to pick.
 - **Forced replies:** a `Me:` line *outside* a choice means the player has no choice, only something to type.
 
 ---
@@ -92,14 +97,18 @@ TextingWhileDriving/dialogue/
 The player must type `Me:` text **exactly**. Typo tolerance will be playtested later, so for now write
 exactly what should appear in the sent bubble, including capitals and punctuation.
 
-Typing difficulty is a design lever (hard characters get introduced as levels go on). Until the
-difficulty tiers are defined, **stick to the "easy" set** in early levels:
+**Typing difficulty (proposed).** Because the player types every `Me:` line while driving, the
+characters in it decide how hard the message is to send. The plan is for typing to get harder in later
+levels, so here is a rough scale for how hard each kind of character is to type:
 
-| Tier | Characters | Status |
-|---|---|---|
-| Easy | `a–z A–Z 0–9`, space, `. , ? ! ' -` | Use freely |
-| Harder | `: ; " ( ) / & @ % ~ ^ \|` and digits mid-word (`gr8`) | OK, but count it as difficulty |
-| Hardest | emoji, accented letters, and characters below that need escaping | Allowed, but how players type emoji is still an [open question](ROADMAP.md#open-questions) |
+| Difficulty | Characters | Why | Use |
+|---|---|---|---|
+| Easy | `a–z 0–9`, space, `. , ' -` | One key each, no Shift | Any level |
+| Medium | Capitals, `? ! : ; " ( ) / & @ % ~ ^ \|`, digits mid-word (`gr8`) | Needs Shift, or hunting for a symbol | From the middle levels |
+| Hard | emoji, accented letters (`é`), the escaped characters below | Not on the keyboard at all | Late levels. How players type emoji is still an [open question](ROADMAP.md#open-questions). |
+
+This is only a guideline until levels have real difficulty targets. Later, the validator can warn
+when a message is harder than its level allows.
 
 **Characters that need a backslash** (in *any* line, not just `Me:`):
 
@@ -126,7 +135,7 @@ Me: on my way
 Mom: drive safe #delay:4
 ```
 
-- **No tag (proposed):** the game picks a natural delay from the message length (about 1–3 s).
+- **No tag:** the game picks a natural delay from the message length (about 1–3 s).
 - **Silence with no typing indicator:** `<<wait N>>` on its own line (someone looked away from their phone).
 - Delays are on a timer for now. Later the game may also hold a message until the player
   reaches a spot on the road, but that won't change how these files are written.
@@ -155,7 +164,7 @@ and levels, and are saved with the game.
   (see [`docs/writing/Variables.yarn`](writing/Variables.yarn)). The compiler only *warns* about
   undeclared variables, so a typo like `$mom_turst` would silently create a new variable. The
   validator will turn this into an error.
-- **Names (proposed):** `$<thread>_<what>`, snake_case (`$mom_trust`, `$mom_l1_answered`). Use
+- **Names:** `$<thread>_<what>`, snake_case (`$mom_trust`, `$mom_l1_answered`). Use
   `$story_<what>` for things not tied to one person.
 - Set: `<<set $mom_trust to $mom_trust - 1>>`. Branch: `<<if $mom_trust < 2>> … <<endif>>`.
 
