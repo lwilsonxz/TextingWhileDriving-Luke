@@ -1,0 +1,14 @@
+[remap]
+
+importer="yarn_spinner.yarn_file"
+type="Resource"
+uid="uid://bw5puoc2gyoeu"
+path="res://.godot/imported/Mom.yarn-5a6675635cbbd81c5baeeaa1492fbb4f.res"
+
+[deps]
+
+source_file="res://dialogue/Mom.yarn"
+dest_files=["res://.godot/imported/Mom.yarn-5a6675635cbbd81c5baeeaa1492fbb4f.res"]
+
+[params]
+

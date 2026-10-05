@@ -1,0 +1,18 @@
+; Throwaway project for the Yarn Spinner runtime spike (roadmap step A0).
+; Run tools/setup_yarn_spinner.sh first to install the addon.
+
+config_version=5
+
+[application]
+
+config/name="Yarn Spinner Spike"
+run/main_scene="res://spike_test.tscn"
+config/features=PackedStringArray("4.6")
+
+[autoload]
+
+YarnSpinner="*res://addons/yarn_spinner/yarn_spinner.gd"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/yarn_spinner/plugin.cfg")

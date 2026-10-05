@@ -1,0 +1,77 @@
+{
+  "Functions": [
+    {
+      "DefinitionName": "_yarn_function_ran_stop_sign",
+      "Documentation": "ran_stop_sign(): did the player run the last stop sign?",
+      "FileName": "spike_game_hooks.gd",
+      "Language": "gdscript",
+      "Location": {
+        "end": {
+          "character": 25,
+          "line": 16
+        },
+        "start": {
+          "character": 0,
+          "line": 15
+        }
+      },
+      "Parameters": [],
+      "ReturnType": "bool",
+      "YarnName": "ran_stop_sign"
+    }
+  ],
+  "commands": [
+    {
+      "async": true,
+      "definitionName": "_cmd_wait",
+      "documentation": "Pauses the dialogue for the given number of seconds.",
+      "fileName": "dialogue_runner.gd",
+      "language": "gdscript",
+      "location": {
+        "end": {
+          "character": 37,
+          "line": 1702
+        },
+        "start": {
+          "character": 0,
+          "line": 1699
+        }
+      },
+      "parameters": [
+        {
+          "documentation": "How long to wait, in seconds.",
+          "isParamsArray": false,
+          "name": "duration",
+          "type": "number"
+        }
+      ],
+      "yarnName": "wait"
+    },
+    {
+      "async": true,
+      "definitionName": "_yarn_command_typing",
+      "documentation": "<<typing seconds>>: show the \"...\" indicator; dialogue waits for it.",
+      "fileName": "spike_game_hooks.gd",
+      "language": "gdscript",
+      "location": {
+        "end": {
+          "character": 75,
+          "line": 11
+        },
+        "start": {
+          "character": 0,
+          "line": 10
+        }
+      },
+      "parameters": [
+        {
+          "isParamsArray": false,
+          "name": "seconds",
+          "type": "number"
+        }
+      ],
+      "yarnName": "typing"
+    }
+  ],
+  "version": 2
+}
