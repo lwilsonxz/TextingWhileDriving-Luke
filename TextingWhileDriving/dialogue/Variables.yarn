@@ -1,0 +1,7 @@
+// Every story variable is declared here, once, for the whole game.
+// Add a line (with a comment) when you add a variable. See docs/WRITING_GUIDE.md §7.
+// Naming: $<thread>_<what>, snake_case, e.g. $mom_trust. Use $story_<what> for things not tied to one person.
+
+title: Variables
+---
+===

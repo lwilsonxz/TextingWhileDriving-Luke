@@ -1,0 +1,82 @@
+// Every problem the validator should report in this file is marked with an "expect" comment,
+// either on the line itself or as "expect-next" on the line above it.
+// The test fails if a marked problem isn't reported, or an unmarked one is.
+
+title: Mom_L1_Lines
+---
+Mom: fine line #delay:2
+no sender here // expect: missing-sender
+"John Doe": quoted // expect: quoted-sender
+John Doe: one
+John Doe: two
+john doe: three // expect: speaker-spelling
+Mom: bad bracket [sic] // expect: unescaped-bracket
+Mom: escaped is fine \[sic\] and \#hash and \/\/ and lol(
+Mom: see http://x // expect: unescaped-comment
+Mom: bad tag #bogus // expect: unknown-tag
+Mom: bad delay #delay:0 // expect: bad-tag-value
+Mom: timeout on a message #timeout:5 // expect: tag-placement
+Me: delay on a typed line #delay:2 // expect: tag-placement
+<<shake 3>> // expect: unknown-command
+<<if made_up()>> // expect: unknown-function
+    Mom: inside if
+<<endif>>
+Mom: {made_up_two()} // expect: unknown-function
+<<declare $stray = 1>> // expect: declare-outside-variables
+<<start_thread Dad Dad_L1_Missing>> // expect: unknown-node
+<<set $tursted to 1>> // expect: compiler-warning
+<<jump Nowhere>> // expect: compiler-warning
+===
+
+title: Mom_L1_Choices
+---
+-> No typed line // expect: missing-me-line, multiple-timeouts
+    Mom: oops
+-> Fine
+    Me: ok
+-> (no reply) #timeout:5
+    Mom: first timeout
+-> (no reply again) #timeout:6
+    Mom: second timeout
+Mom: after the choices
+-> One // expect: too-many-choices
+    Me: one
+-> Two
+    Me: two
+-> Three
+    Me: three
+-> Four
+    Me: four
+-> Five
+    Me: five
+Mom: after five
+-> (no reply) #timeout:3 // expect: no-visible-choices
+    Mom: only a timeout
+Mom: nested choices
+-> Outer
+    Me: outer
+    -> Inner without typed line // expect: missing-me-line
+        Mom: hmm
+    -> Inner fine
+        Me: fine
+-> Choice with delay #delay:2 // expect: tag-placement
+    Me: typed
+===
+
+// expect-next: title-thread
+title: Dad_L1_Wrong
+---
+Mom: wrong thread prefix
+===
+
+// expect-next: title-level
+title: Mom_L2_Wrong
+---
+Mom: wrong level
+===
+
+// expect-next: title-format
+title: momstart
+---
+Mom: bad title
+===

@@ -130,17 +130,23 @@ conversation runs in (so no `<<thread>>` command), and the typing indicator is a
 - **Writers can start writing at the end of A1/A2**, using the VS Code graph + preview, before any
   game code exists.
 
-### A3. Validation script + CI (2–3 days)
-`tools/validate_dialogue.gd`, run with `godot --headless --script`, plus a GitHub Action on the fork:
-- Yarn compiles via `ysc compile`, **with every warning treated as an error**. The A0 spike found that
-  jumps to missing nodes and undeclared variables are only warnings, and the Godot import doesn't
-  surface them.
-- Every `<<command>>` is checked against the registered list in the project's `.ysls.json`
-  (Yarn doesn't check commands at compile time)
-- Our conventions: every non-timeout option contains at least one `Me:` line; speakers are known
-  contacts; tags are well-formed
-  (`#delay:<number>`); no unreachable nodes; at most one timeout option per choice
-- A report of word count and branch count per file, so writers can see scope
+### A3. Validation script + CI ✅ done
+`godot --headless --script tools/validate_dialogue.gd` (logic in `tools/dialogue_validator.gd`), run on
+every PR and push to `main` that touches dialogue by `.github/workflows/dialogue.yml`. Problems show
+inline on the PR.
+- **Compiler:** runs `ysc` with a definitions file generated from `dialogue_hooks.gd`. Warnings
+  (missing jump targets, undeclared variables) count as errors.
+- **Checks Yarn can't do:** unknown commands and functions (ysc silently accepts unknown functions),
+  `<<start_thread>>` targets that don't exist
+- **Writing-guide rules:** every message has a sender, no quoted names, every visible choice has a
+  `Me:` line, 1–4 visible choices, at most one `#timeout` per set, only `#delay`/`#timeout`/`#line`
+  tags with valid values, unescaped `[ ]` and `://`, node titles match file and level folder,
+  `<<declare>>` only in `Variables.yarn`, files live in level folders, names spelled two ways
+  ("John Doe" / "john doe")
+- **Report:** per-file nodes, choices, incoming/typed word counts, typed characters, typed lines by
+  difficulty tier, and the list of entry points (nodes the game must start)
+- **Tests:** `tools/tests/test_dialogue_validator.gd` checks the writing-guide template passes and
+  every marked problem in `tools/tests/fixtures/invalid/` is reported, and nothing else
 
 ### A4. Dialogue Playtest scene (3–5 days), the writers' main tool
 `res://tools/dialogue_playtest.tscn` is a standalone scene that needs no driving:

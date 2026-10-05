@@ -1,0 +1,63 @@
+name: Dialogue
+
+# Checks every dialogue file against docs/WRITING_GUIDE.md, and shows problems
+# inline on pull requests.
+on:
+  pull_request:
+    paths:
+      - "TextingWhileDriving/dialogue/**"
+      - "TextingWhileDriving/phone/dialogue_hooks.gd"
+      - "docs/writing/**"
+      - "tools/**"
+      - ".github/workflows/dialogue.yml"
+  push:
+    branches: [main]
+    paths:
+      - "TextingWhileDriving/dialogue/**"
+      - "TextingWhileDriving/phone/dialogue_hooks.gd"
+      - "docs/writing/**"
+      - "tools/**"
+      - ".github/workflows/dialogue.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: "4.6.3"
+      YSC_VERSION: "3.2.2"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Install the Yarn compiler
+        run: |
+          dotnet tool install --global YarnSpinner.Console --version "$YSC_VERSION"
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Cache Godot
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-${{ env.GODOT_VERSION }}
+
+      - name: Install Godot
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot
+          curl -sSL -o godot.zip "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q godot.zip -d ~/godot
+          mv ~/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64 ~/godot/godot
+
+      - name: Add Godot to PATH
+        run: echo "$HOME/godot" >> "$GITHUB_PATH"
+
+      - name: Test the validator
+        run: godot --headless --script tools/tests/test_dialogue_validator.gd
+
+      - name: Validate dialogue
+        run: godot --headless --script tools/validate_dialogue.gd
