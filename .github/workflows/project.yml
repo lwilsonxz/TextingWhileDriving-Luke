@@ -7,6 +7,7 @@ on:
     paths:
       - "TextingWhileDriving/**"
       - "tools/check_scenes.gd"
+      - "tools/tests/test_dialogue_playtest.gd"
       - "tools/setup_yarn_spinner.sh"
       - ".github/workflows/project.yml"
   push:
@@ -14,6 +15,7 @@ on:
     paths:
       - "TextingWhileDriving/**"
       - "tools/check_scenes.gd"
+      - "tools/tests/test_dialogue_playtest.gd"
       - "tools/setup_yarn_spinner.sh"
       - ".github/workflows/project.yml"
   workflow_dispatch:
@@ -62,3 +64,6 @@ jobs:
 
       - name: Run every scene
         run: godot --headless --path TextingWhileDriving --script res://../tools/check_scenes.gd
+
+      - name: Test the dialogue playtest scene
+        run: godot --headless --path TextingWhileDriving --script res://../tools/tests/test_dialogue_playtest.gd

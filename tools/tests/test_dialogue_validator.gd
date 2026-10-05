@@ -41,6 +41,10 @@ func _test_writing_guide_template_passes(validator, repo_root: String, hooks: St
 	var stats: Dictionary = result.stats.get("L1/Mom.yarn", {})
 	_check(stats.get("choices", 0) == 4 and stats.get("choice_sets", 0) == 1, "counts 1 choice set with 4 choices")
 	_check(result.entry_points == ["Mom_L1_Start"], "the only entry point is Mom_L1_Start (got %s)" % [result.entry_points])
+	for pair in [["docs/writing/template.yarn", "Mom.yarn"], ["docs/writing/Variables.yarn", "Variables.yarn"]]:
+		var sample: String = "TextingWhileDriving/game/debug/dialogue_playtest/sample/" + pair[1]
+		_check(FileAccess.get_file_as_string(repo_root.path_join(pair[0])) == FileAccess.get_file_as_string(repo_root.path_join(sample)),
+			"the playtest's sample %s matches %s (copy it over if you changed the template)" % [pair[1], pair[0]])
 	for file in ["L1/Mom.yarn", "Variables.yarn"]:
 		DirAccess.remove_absolute(temp.path_join(file))
 	DirAccess.remove_absolute(temp.path_join("L1"))

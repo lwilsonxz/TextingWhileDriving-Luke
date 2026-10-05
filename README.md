@@ -51,6 +51,12 @@ godot --headless --script tools/validate_dialogue.gd
 # Scenes: loads and runs every scene, fails on any error (import the project once first)
 godot --headless --path TextingWhileDriving --import
 godot --headless --path TextingWhileDriving --script res://../tools/check_scenes.gd
+
+# Dialogue playtest scene and phone UI, end to end
+godot --headless --path TextingWhileDriving --script res://../tools/tests/test_dialogue_playtest.gd
+
+# Validator tests
+godot --headless --script tools/tests/test_dialogue_validator.gd
 ```
 
 ## Credits
