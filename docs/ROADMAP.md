@@ -104,47 +104,22 @@ Yarn Spinner for Godot (GDScript) Early Access 3.2:
 The addon isn't committed (licence). Install it with `tools/setup_yarn_spinner.sh` / `.ps1`.
 Compiling needs the `ysc` tool (.NET); see the results doc for setup.
 
-### A1. "Texting screenplay" conventions (1–2 days, programmer + lead writer)
-This is a short `docs/WRITING_GUIDE.md`, and it's the main thing that unblocks writers. Draft proposal:
+### A1. "Texting screenplay" conventions 📝 drafted, awaiting lead-writer review
+The format is in [`docs/WRITING_GUIDE.md`](WRITING_GUIDE.md), with a copy-ready
+[`template.yarn`](writing/template.yarn) and [`Variables.yarn`](writing/Variables.yarn) (both compile
+cleanly). Summary:
+- `Name: text` = incoming message, `Me: text` = what the player must type, `System: text` = phone notice
+- `-> Short label` = a choice; the `Me:` lines under it are the typed text. Every choice needs one,
+  except a hidden `#timeout:N` choice, which is auto-picked when the player doesn't answer.
+- `#delay:N` = gap before an incoming message, shown as the typing indicator; `<<wait N>>` = silence
+- Node titles `<Thread>_<Level>_<Beat>`; one file per thread per level; all variables declared in
+  `dialogue/Variables.yarn`
+- Characters that must be escaped in lines (`\#`, `\[ \]`, `\{ \}`, `\/\/`, `\\`) were checked against the
+  real compiler and runtime, along with an easy/harder/hardest character tiering for typed text.
 
-```yarn
-title: Contact_Scene_Beat
----
-<<thread Contact>>                  // which phone thread this conversation lives in
-Contact: an incoming message        #delay:1.5
-Contact: a second bubble            #delay:0.8
--> Short option label               // what the player picks (the "Mass Effect wheel" text)
-    Me: the full message the player must type to send
-    <<set $some_flag to true>>
-    <<jump Contact_Scene_NextBeat>>
--> Another short label
-    Me: a different message to type
-    Me: players can be made to type multiple bubbles
-    <<jump Contact_Scene_OtherBeat>>
--> (no reply) #timeout:10           // auto-picked if the player doesn't answer in time
-    <<jump Contact_Scene_Ignored>>
-===
-```
-
-Rules this format encodes:
-- **NPC lines** (`Name: text`) appear as incoming bubbles. `#delay:` sets how long after the previous
-  message (usually the player's reply) the bubble arrives. Timers are the only timing mechanism for
-  now. An optional `<<typing N>>` shows the "…" indicator.
-- **Later, if timers alone aren't fun or are hard to level-design around:** add level-gated delivery,
-  e.g. `<<wait_for passed_bridge>>`, so a message arrives after its timer *and* only once the player
-  has passed a hidden marker in the level. The format leaves room for this without changing existing files.
-- **Options** are the short labels. The **`Me:` lines inside an option** are the exact text the
-  player must type. Players never free-type; the typing challenge validates against these lines.
-- **`#timeout:N`** on an option makes it the hidden default when the player doesn't reply. This is the
-  bridge to driving pressure.
-- **Gameplay hooks:** `<<command>>` for things the story *does* to the game (start a thread, trigger an
-  event) and `function()` for things the story *asks* the game (did you crash? are you speeding?).
-  Programmers own a list of available ones in the guide.
-- **Naming:** node titles `Contact_Scene_Beat`, one file per contact per level, variables `$snake_case`.
-
-Typing starts as an **exact match** (see Decisions). `Me:` lines may contain emoji and hard-to-type
-punctuation as a difficulty lever. The guide should state which characters are fair game at each
-difficulty tier.
+Changes from the first sketch of this format: the game, not the file, decides which thread a
+conversation runs in (so no `<<thread>>` command), and the typing indicator is automatic during
+`#delay` (so no `<<typing>>` command).
 
 ### A2. Writer setup (½ day)
 - Install VS Code + the **Yarn Spinner** extension and clone the fork (writers are comfortable with git).

@@ -1,0 +1,201 @@
+# Writing Guide: the texting screenplay format
+
+> Status: **draft (roadmap step A1)**, for the lead writer to review. Items marked **(proposed)** are
+> convention choices that can be changed. Anything else is a hard requirement of the engine.
+
+This is how conversations are written for the game. You write in plain text files using **Yarn**, a
+screenplay-like format, in VS Code. VS Code shows the branches as a graph while you write. The
+game turns these files into the conversations on the in-game phone.
+
+- **Starting point:** copy [`docs/writing/template.yarn`](writing/template.yarn). It shows every
+  feature on this page and compiles cleanly.
+- **Yarn basics:** see the [official Yarn docs](https://docs.yarnspinner.dev/write-yarn-scripts).
+  This guide only covers what's specific to this game.
+
+---
+
+## 1. Setup
+
+1. Install [VS Code](https://code.visualstudio.com/) and the **Yarn Spinner** extension (search
+   "Yarn Spinner" in the Extensions panel).
+2. Clone the fork: `https://github.com/lwilsonxz/TextingWhileDriving-Luke`.
+3. Open the repo folder in VS Code. To see a `.yarn` file as a graph, open it, then open the
+   Command Palette (`Ctrl+Shift+P`) and type "Yarn Spinner" to find the graph command. In the graph
+   you can drag nodes around and colour-code them, and it stays in sync with the text.
+
+To also play conversations on the in-game phone (the playtest scene, coming in roadmap A4), you'll need
+Godot 4.6 and a one-time compiler install. See [A0 results §6](spikes/A0-yarn-spinner.md#things-to-know-and-where-they-go-in-the-roadmap).
+
+---
+
+## 2. Files and names
+
+```
+TextingWhileDriving/dialogue/
+├── Variables.yarn          ← every story variable, declared once (see §7)
+├── L1/
+│   ├── Mom.yarn            ← one file per thread per level
+│   └── BestFriend.yarn
+└── L2/
+    └── Mom.yarn
+```
+
+- **Thread:** one conversation on the phone, like a contact or a group chat. The game starts
+  threads (e.g. "when the player reaches the bridge, start `Mom_L1_Start`").
+- **Node titles:** `<Thread>_<Level>_<Beat>`, e.g. `Mom_L1_Start`, `Mom_L1_Ignored`,
+  `Family_L2_Dinner`. Titles must be unique across the *whole game*, and the prefix keeps them
+  unique. Use letters, digits and `_` only.
+- **Branches (git):** `dialogue-<thread>-<level>`, e.g. `dialogue-mom-l1`. Open a PR into `main`.
+
+---
+
+## 3. Messages
+
+| You write | On the phone | Notes |
+|---|---|---|
+| `Mom: are you driving?` | An incoming bubble from Mom | The name before the colon is the sender. Group chats just use several names in one thread. |
+| `Me: no lol` | The player must **type** this, then it's sent | Exact text, see §5. |
+| `System: Mom left the chat` | A small grey notice | For phone events ("Delivered", "Missed call", etc.). |
+
+- **One message per line.** Several lines in a row become several bubbles.
+- **Don't** write lines with no sender. Every line needs `Name:` (the validator will enforce this).
+- **Sender names (proposed):** one word, matching the thread name where it's a 1-on-1
+  (`Mom`, `BestFriend`). The player is always `Me`.
+
+---
+
+## 4. Choices
+
+```yarn
+-> Make a joke
+    Me: only at 90mph
+    <<jump Mom_L1_Joke>>
+-> Lie
+    Me: nope, parked
+    <<jump Mom_L1_Lie>>
+```
+
+- The text after `->` is the **short label** the player picks from (the "Mass Effect wheel" text).
+  It is never sent as a message.
+- The `Me:` lines indented underneath are what the player then has to **type** before it sends.
+  **Every choice needs at least one `Me:` line** (except a timeout choice, §6).
+- Several `Me:` lines means the player types several messages in a row.
+- **Conditional choices:** add `<<if ...>>` after the label to only offer it sometimes:
+  `-> Apologise <<if $mom_trust < 2>>`.
+- **How many (proposed):** 2–4 visible choices. The phone screen is small and the player is driving.
+- **Forced replies:** a `Me:` line *outside* a choice means the player has no choice, only something to type.
+
+---
+
+## 5. What the player types (`Me:` lines)
+
+The player must type `Me:` text **exactly**. Typo tolerance will be playtested later, so for now write
+exactly what should appear in the sent bubble, including capitals and punctuation.
+
+Typing difficulty is a design lever (hard characters get introduced as levels go on). Until the
+difficulty tiers are defined, **stick to the "easy" set** in early levels:
+
+| Tier | Characters | Status |
+|---|---|---|
+| Easy | `a–z A–Z 0–9`, space, `. , ? ! ' -` | Use freely |
+| Harder | `: ; " ( ) / & @ % ~ ^ \|` and digits mid-word (`gr8`) | OK, but count it as difficulty |
+| Hardest | emoji, accented letters, and characters below that need escaping | Allowed, but how players type emoji is still an [open question](ROADMAP.md#open-questions) |
+
+**Characters that need a backslash** (in *any* line, not just `Me:`):
+
+| To show | Write | Why |
+|---|---|---|
+| `#` | `\#` | `#` starts a tag. Unescaped, the rest of the line disappears. |
+| `[` `]` | `\[` `\]` | Brackets are formatting markup. Unescaped, they scramble the line. |
+| `{` `}` | `\{` `\}` | Braces insert variables. |
+| `//` | `\/\/` | `//` starts a comment. Unescaped, the rest of the line disappears (`http://` breaks). |
+| `\` | `\\` | |
+
+`:` (after the sender), `%`, `<3`, emoji and accents need no escaping. These were all checked
+against the real compiler and runtime.
+
+---
+
+## 6. Timing and timeouts
+
+**Delays.** `#delay:N` at the end of an incoming message is the gap, in seconds, before it arrives,
+counted from the previous message. The typing indicator ("…") shows during the gap.
+
+```yarn
+Me: on my way
+Mom: drive safe #delay:4
+```
+
+- **No tag (proposed):** the game picks a natural delay from the message length (about 1–3 s).
+- **Silence with no typing indicator:** `<<wait N>>` on its own line (someone looked away from their phone).
+- Delays are on a timer for now. Later the game may also hold a message until the player
+  reaches a spot on the road, but that won't change how these files are written.
+
+**Timeouts.** A choice tagged `#timeout:N` is **hidden**. If the player hasn't picked anything after
+N seconds, it's picked for them. This is how ignoring someone because you're driving gets consequences.
+
+```yarn
+-> (no reply) #timeout:15
+    <<set $mom_trust to $mom_trust - 1>>
+    <<jump Mom_L1_Ignored>>
+```
+
+- At most **one** timeout choice per set of choices. Its label isn't shown; write `(no reply)` for readability.
+- It doesn't need a `Me:` line, since the player didn't reply.
+- No timeout choice means the conversation waits until the player answers.
+
+---
+
+## 7. Story variables
+
+Variables remember what happened (trust levels, lies told, who was ignored) across conversations
+and levels, and are saved with the game.
+
+- **Declare every variable once, in `dialogue/Variables.yarn`**, with a starting value and a comment
+  (see [`docs/writing/Variables.yarn`](writing/Variables.yarn)). The compiler only *warns* about
+  undeclared variables, so a typo like `$mom_turst` would silently create a new variable. The
+  validator will turn this into an error.
+- **Names (proposed):** `$<thread>_<what>`, snake_case (`$mom_trust`, `$mom_l1_answered`). Use
+  `$story_<what>` for things not tied to one person.
+- Set: `<<set $mom_trust to $mom_trust - 1>>`. Branch: `<<if $mom_trust < 2>> … <<endif>>`.
+
+---
+
+## 8. Asking the game things (and telling it to do things)
+
+**Functions** let a conversation react to the driving: `<<if ran_stop_sign()>>`.
+**Commands** let a conversation affect the game: `<<wait 5>>`.
+
+Only use functions and commands from the list below. VS Code autocompletes them once a programmer
+has added them. If you need a new one, ask a programmer; adding one is quick.
+
+| Name | Kind | What it does | Status |
+|---|---|---|---|
+| `<<wait N>>` | command | N seconds of silence, no typing indicator | ✅ available (built in) |
+| `ran_stop_sign()` | function | true if the player ran the last stop sign | 🛠 planned (prototype) |
+| `violations()` | function | number of traffic violations this level | 🛠 planned (prototype) |
+| `<<start_thread Thread Node>>` | command | start another thread, e.g. a second contact texts in | 🛠 planned (prototype) |
+
+---
+
+## 9. Tags reference
+
+| Tag | Where | Meaning |
+|---|---|---|
+| `#delay:N` | incoming message | seconds before it arrives (§6) |
+| `#timeout:N` | a choice | hidden choice auto-picked after N seconds (§6) |
+| `#line:…` | any line | **added by tooling** for translation. Don't write or edit these by hand. |
+
+Any other tag will be rejected by the validator, so if you want a new one, ask.
+
+---
+
+## 10. Before you open a PR
+
+- [ ] Node titles follow `<Thread>_<Level>_<Beat>` and every `<<jump>>` goes to a real node
+- [ ] Every choice has a `Me:` line (except a `#timeout` choice), and there's at most one timeout per choice set
+- [ ] Every `$variable` is declared in `Variables.yarn`
+- [ ] Special characters are escaped (§5)
+- [ ] Only listed functions and commands are used (§8)
+
+Once the validator lands (roadmap A3), it checks all of this automatically on every PR.
