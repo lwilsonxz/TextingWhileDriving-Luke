@@ -4,12 +4,13 @@
 > In short: GDScript only, Godot 4.6.x, Yarn Spinner for writing, Windows only, a gamepad drives
 > while mouse and keyboard work the phone, typing must be exact at first, and replies arrive on timers.
 
-This document has four parts:
+This document has five parts:
 
 1. [What's in the repo today, and what's worth keeping](#1-repo-audit)
 2. [The dialogue tool recommendation](#2-dialogue-tool-recommendation)
 3. [Roadmap A: dialogue creation pipeline (start now, unblocks writers)](#3-roadmap-a-dialogue-creation-pipeline)
 4. [Roadmap B: minimum playable prototype](#4-roadmap-b-minimum-playable-prototype)
+5. [Roadmap C: level builder](#5-roadmap-c-level-builder)
 
 Decisions made so far, and the questions still open, are collected at the end.
 
@@ -316,6 +317,85 @@ a win state, and at least one story variable that carries into a second short dr
 
 ---
 
+## 5. Roadmap C: level builder
+
+**Goal:** anyone on the team can make a playable level quickly, without editing scene files by hand or
+knowing the code. It starts minimal and grows as levels need more.
+
+### What exists today
+- **Road kit** (`game/world/models/roads-v4.*`, July 2024): a GridMap tile set with 7 pieces: straight,
+  turn, T-junction, crossroads, two ramps, and `CarRef`, a car-sized marker for scale. Tiles are 12 m
+  square. Roads are painted tile by tile with Godot's GridMap editor.
+- **Pieces with behaviour:**
+  - Stop sign (`rules/stopSign.gd`): a trigger area plus a model, wired up by hand in each level.
+  - `Course` (B1): checkpoints, finish line, timer.
+- **Two levels:** the ramps sandbox (`levels/main.tscn`, painted by hand) and the test course (B1).
+  The test course came from a throwaway script that wrote the GridMap cells.
+- **What's painful:**
+  - Picking the right rotation for each turn tile. The rotations are numbers (0, 10, 16, 22), and
+    working them out for the test course took trial renders.
+  - Adding a stop sign or checkpoint means building an Area3D, a collision shape and a model, then
+    connecting signals.
+  - Nothing tells you a level is broken (checkpoint off the road, car spawning in a wall, stop sign
+    facing the wrong way) until you drive it.
+  - The road kit's source file (Blender?) isn't in the repo, only the exported `.glb`.
+
+### C1. Level template and drag-in pieces (minimal, do first)
+- `levels/level_template.tscn`: duplicate it to start a level. It contains sky and light, a `Roads`
+  GridMap with the kit loaded, the car, and an empty `Course`.
+- **Prefab pieces in `game/world/pieces/`**, dragged in from the FileSystem dock:
+  - `Spawn` (where the car starts and which way it faces)
+  - `Checkpoint` and `Finish` (the Course picks up their order automatically)
+  - `StopSign` (trigger and model in one, already wired)
+  - `TextTrigger`: drive into it to start a phone conversation (`thread`, `node` fields). This is the
+    hook for B4's level flow and A5's `PhoneService`.
+- **Pieces are visible in the editor** (labelled, coloured boxes, a "this way" arrow) and invisible
+  in game, and snap to the 12 m road grid.
+- **`docs/LEVEL_GUIDE.md`:** a one-page how-to (paint roads, drop pieces, press F6), written for
+  designers, like the writing guide.
+
+### C2. Level checker (same idea as the dialogue validator)
+- **`tools/check_levels.gd`:** runs on every level in CI and when run by hand. It checks that:
+  - there's exactly one spawn, and it's on a road tile;
+  - every checkpoint and the finish sits across a road;
+  - stop signs face oncoming traffic;
+  - `TextTrigger`s name real Yarn nodes (cross-checked with the dialogue validator's entry points);
+  - every checkpoint can be reached in order along the road.
+- **Prints a per-level report:** road length, checkpoints, stop signs, conversation triggers, and an
+  estimated drive time at the speed limit (so "a 3–5 minute level" can be checked).
+
+### C3. Quick blockout from a text map
+- **Sketch a level as text**, where each character is one road tile, then generate the level scene
+  from it. For example:
+
+  ```
+  +----1---+
+  |        |
+  X        2
+  |        |
+  S        |
+  F---3----+
+  ```
+
+  `-` / `|` road, `+` corner or junction, `S` spawn, `F` finish, `1–9` checkpoints, `X` stop sign.
+- **Auto-tiling:** the generator picks the right tile and rotation from each tile's neighbours, which
+  removes the rotation guesswork.
+- **Then refine in the editor:** the text sketch is a fast starting point (and easy to discuss in a
+  PR); after generating, designers refine in the editor as normal.
+
+### C4. Later, when levels need it
+- **Road painting with auto-tiling inside the Godot editor** (an editor plugin): draw a path and the
+  plugin places the right tiles.
+- **More road kit pieces** (traffic lights, lane markings, scenery, buildings) and more rule pieces
+  (traffic lights, speed limits, school zones), each a drag-in prefab with a check in C2.
+- **A level select screen** that lists every level automatically.
+
+**Suggested order:** C1 → C2 → C3. C1 alone is enough for someone to build a level today. C2 stops
+broken levels reaching playtesters, and C3 makes the first draft of a level take minutes.
+The open questions for this roadmap are 2–4 in [Open questions](#open-questions).
+
+---
+
 ## Suggested order of work
 
 | Week | Programmer focus | Writers |
@@ -324,7 +404,7 @@ a win state, and at least one story variable that carries into a second short dr
 | 2 | A3 validation + CI, start B2 phone UI | Writing, using VS Code preview |
 | 3 | A4 playtest scene (shares the phone UI from B2) | Playtest their scenes on the real phone |
 | 4–5 | A5 integration, B1 driving cleanup, B3 coupling | Write level-specific hooks with programmers |
-| 6+ | B4 level flow, first full prototype playtest | Iterate on what testers reach |
+| 6+ | C1 level template + pieces, B4 level flow, first full prototype playtest | Iterate on what testers reach |
 
 ---
 
@@ -351,6 +431,10 @@ a win state, and at least one story variable that carries into a second short dr
 1. **How are hard characters typed?** Options include an on-screen emoji picker, shortcodes
    (`:skull:`), or the phone's "long-press" alternate characters. This needs settling in B2, and the
    validation script (A3) should know which characters are allowed at each difficulty tier.
+2. **Level builder: who builds levels?** People comfortable in the Godot editor, or should C3's
+   text maps be the main tool?
+3. **Level builder: where is the road kit's source file** (Blender?), and who can add pieces to it?
+4. **Level builder: one long drive or loops?** The prototype goal is a 3–5 minute level.
 
 ---
 
