@@ -1,0 +1,100 @@
+extends SceneTree
+## Tests for tools/dialogue_validator.gd.
+##
+## From the repo root:
+##   godot --headless --script tools/tests/test_dialogue_validator.gd
+## Needs the Yarn compiler (ysc). Exits 1 on failure.
+
+var _failures := 0
+
+
+func _initialize() -> void:
+	var tests_dir := ProjectSettings.globalize_path(get_script().resource_path).get_base_dir()
+	var repo_root := tests_dir.get_base_dir().get_base_dir()
+	var validator_script: GDScript = load(tests_dir.get_base_dir().path_join("dialogue_validator.gd"))
+	if validator_script == null or not validator_script.can_instantiate():
+		printerr("Couldn't load the validator.")
+		quit(2)
+		return
+	var hooks := repo_root.path_join("TextingWhileDriving/phone/dialogue_hooks.gd")
+
+	_test_writing_guide_template_passes(validator_script.new(), repo_root, hooks)
+	_test_marked_problems_are_reported(validator_script.new(), tests_dir.path_join("fixtures/invalid"), hooks)
+	_test_typing_tiers(validator_script.new())
+
+	print("")
+	print("ALL TESTS PASSED" if _failures == 0 else "%d TEST(S) FAILED" % _failures)
+	quit(0 if _failures == 0 else 1)
+
+
+## The template in docs/writing/ is what writers copy, so it must always pass.
+func _test_writing_guide_template_passes(validator, repo_root: String, hooks: String) -> void:
+	print("== The writing guide's template passes ==")
+	var temp := OS.get_temp_dir().path_join("validator_test_%d" % Time.get_ticks_usec())
+	DirAccess.make_dir_recursive_absolute(temp.path_join("L1"))
+	DirAccess.copy_absolute(repo_root.path_join("docs/writing/template.yarn"), temp.path_join("L1/Mom.yarn"))
+	DirAccess.copy_absolute(repo_root.path_join("docs/writing/Variables.yarn"), temp.path_join("Variables.yarn"))
+	var result: Dictionary = validator.run(temp, hooks)
+	for issue in result.issues:
+		print("    unexpected: %s:%d [%s] %s" % [issue.file, issue.line, issue.code, issue.message])
+	_check(result.issues.is_empty(), "no problems reported")
+	var stats: Dictionary = result.stats.get("L1/Mom.yarn", {})
+	_check(stats.get("choices", 0) == 4 and stats.get("choice_sets", 0) == 1, "counts 1 choice set with 4 choices")
+	_check(result.entry_points == ["Mom_L1_Start"], "the only entry point is Mom_L1_Start (got %s)" % [result.entry_points])
+	for file in ["L1/Mom.yarn", "Variables.yarn"]:
+		DirAccess.remove_absolute(temp.path_join(file))
+	DirAccess.remove_absolute(temp.path_join("L1"))
+	DirAccess.remove_absolute(temp)
+
+
+## Compares reported problems with the `// expect:` markers in the fixture files.
+func _test_marked_problems_are_reported(validator, fixtures: String, hooks: String) -> void:
+	print("== Marked problems in fixtures/invalid are reported, and nothing else ==")
+	var expected := {}
+	_collect_expectations(fixtures, fixtures, expected)
+	var result: Dictionary = validator.run(fixtures, hooks)
+	var reported := {}
+	for issue in result.issues:
+		reported["%s:%d %s" % [issue.file, issue.line, issue.code]] = issue.message
+	for key in expected:
+		_check(reported.has(key), "reported " + key)
+	for key in reported:
+		if not expected.has(key):
+			_check(false, "not expected: %s (%s)" % [key, reported[key]])
+
+
+func _collect_expectations(root: String, dir_path: String, into: Dictionary) -> void:
+	var dir := DirAccess.open(dir_path)
+	for sub in dir.get_directories():
+		_collect_expectations(root, dir_path.path_join(sub), into)
+	for file in dir.get_files():
+		if file.get_extension() != "yarn":
+			continue
+		var relative := dir_path.path_join(file).trim_prefix(root).trim_prefix("/")
+		var lines := FileAccess.get_file_as_string(dir_path.path_join(file)).split("\n")
+		for i in lines.size():
+			for marker in ["// expect-next:", "// expect:"]:
+				var at := lines[i].find(marker)
+				if at == -1:
+					continue
+				var line_number := i + 1 + (1 if marker == "// expect-next:" else 0)
+				for code in lines[i].substr(at + marker.length()).split(",", false):
+					into["%s:%d %s" % [relative, line_number, code.strip_edges()]] = true
+				break
+
+
+func _test_typing_tiers(validator) -> void:
+	print("== Typing difficulty tiers ==")
+	for case in [
+		["on my way", "easy"], ["its 5 o'clock - ok", "easy"],
+		["On my way", "medium"], ["omw!", "medium"], ["gr8", "medium"], ["a/b", "medium"],
+		["café", "hard"], ["lol 😂", "hard"], ["#blessed", "hard"], ["http://x", "hard"],
+	]:
+		var tier: String = validator._typing_tier(case[0])
+		_check(tier == case[1], "\"%s\" is %s (got %s)" % [case[0], case[1], tier])
+
+
+func _check(condition: bool, label: String) -> void:
+	print(("  PASS  " if condition else "  FAIL  ") + label)
+	if not condition:
+		_failures += 1

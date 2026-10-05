@@ -175,8 +175,10 @@ and levels, and are saved with the game.
 **Functions** let a conversation react to the driving: `<<if ran_stop_sign()>>`.
 **Commands** let a conversation affect the game: `<<wait 5>>`.
 
-Only use functions and commands from the list below. VS Code autocompletes them once a programmer
-has added them. If you need a new one, ask a programmer; adding one is quick.
+Only use functions and commands from the list below; the validator rejects anything else. If you need
+a new one, ask a programmer; adding one is quick. (Programmers: they live in
+`TextingWhileDriving/phone/dialogue_hooks.gd` as `static func _yarn_function_*` / `_yarn_command_*`.
+The validator reads them from there.)
 
 | Name | Kind | What it does | Status |
 |---|---|---|---|
@@ -207,4 +209,16 @@ Any other tag will be rejected by the validator, so if you want a new one, ask.
 - [ ] Special characters are escaped (§5)
 - [ ] Only listed functions and commands are used (§8)
 
-Once the validator lands (roadmap A3), it checks all of this automatically on every PR.
+The **validator** checks all of this (and more) automatically on every PR that touches dialogue, and
+shows problems inline on the PR. Each message says what's wrong and how to fix it.
+
+To run it yourself before pushing (needs Godot 4.6 and the Yarn compiler, see §1), from the repo root:
+
+```sh
+godot --headless --script tools/validate_dialogue.gd
+```
+
+It lists problems as `file:line: error [code] message`, then a table per file: word counts, how many
+characters the player types, and how many typed lines are easy/medium/hard (§5). It also lists the
+**entry points**: nodes nothing jumps to, which the game must start. Check that this matches the
+conversations you expect each level to start.
