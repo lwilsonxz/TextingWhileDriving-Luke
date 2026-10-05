@@ -21,7 +21,21 @@ told through the conversations on your phone. Built with Godot 4.6 (GDScript onl
    tools/setup_yarn_spinner.sh                                          # macOS / Linux / Git Bash
    powershell -ExecutionPolicy Bypass -File tools\setup_yarn_spinner.ps1   # Windows PowerShell
    ```
-4. Open `TextingWhileDriving/project.godot` in Godot. The main scene is `game/levels/main.tscn`.
+4. Open `TextingWhileDriving/project.godot` in Godot and press F5. The main scene is the test course
+   (`game/levels/test_course.tscn`); `game/levels/main.tscn` is the old sandbox with ramps.
+
+## Playing
+
+| | Gamepad | Keyboard |
+|---|---|---|
+| Accelerate / brake & reverse | RT / LT | ↑ / ↓ |
+| Steer | left stick | ← / → |
+| Handbrake | B | Right Ctrl |
+| Look at the phone | LB | F4 |
+| Road / rear / left window view | D-pad ↑ / ↓ / ← | F3 / F1 / F2 |
+
+Playtest options (saved between sessions): **F6** switches the phone glance between toggle and hold,
+**F7** moves the phone to the next placement.
 
 ## Layout
 
@@ -32,7 +46,7 @@ TextingWhileDriving/          the Godot project
 └── game/
     ├── car/                  the car, its cameras and models
     ├── debug/                developer tools, e.g. the dialogue playtest scene
-    ├── levels/               playable scenes (main.tscn is the test track)
+    ├── levels/               playable scenes (test_course.tscn; main.tscn is the ramps sandbox)
     ├── phone/                the in-car phone and its conversation UI
     ├── rules/                traffic rules (stop signs, ...)
     ├── ui/                   menus and screens
@@ -56,6 +70,10 @@ godot --headless --path TextingWhileDriving --script res://../tools/check_scenes
 
 # Dialogue playtest scene and phone UI, end to end
 godot --headless --path TextingWhileDriving --script res://../tools/tests/test_dialogue_playtest.gd
+
+# Car (driving at several frame rates, camera) and test course
+godot --headless --path TextingWhileDriving --script res://../tools/tests/test_car.gd
+godot --headless --path TextingWhileDriving --script res://../tools/tests/test_course.gd
 
 # Validator tests
 godot --headless --script tools/tests/test_dialogue_validator.gd

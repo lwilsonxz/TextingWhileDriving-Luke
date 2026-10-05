@@ -238,17 +238,50 @@ a win state, and at least one story variable that carries into a second short dr
 - **Scene smoke check:** `tools/check_scenes.gd` loads and runs every scene and fails on any error.
   CI (`.github/workflows/project.yml`) runs it on every PR that touches the game.
 
-### B1. Driving core (3–5 days)
-- Clean up `BaseCar.gd`: sane speed units and tuning exports. **Bug found in B0:** its speed estimate
-  multiplies by the *rendering* frame rate (`Engine.get_frames_per_second()`), so acceleration changes
-  with FPS. A headless test drove ~10% further or shorter depending on frame rate. Use
-  `linear_velocity.length()` directly. Also consider analog throttle now that triggers are bound.
-- Fix `main.tscn` instancing `phone.tscn` twice (both copies receive keystrokes)
-- Camera: position/rotation preset pairs, with "glance at phone" vs "eyes on road" as the main toggle.
-  A hold-to-look mode is worth testing.
-- One course built from the GridMap road kit, plus start, checkpoints and finish trigger
+### B1. Driving core ✅ done
+- **Car controller rewritten (`game/car/BaseCar.gd`)**, with bugs fixed:
+  - **Frame rate:** acceleration depended on frame rate (speed was multiplied by the rendering FPS).
+    The same 2 s press ended at 92–136 km/h depending on FPS; now it's identical at any frame rate.
+  - **Braking:** "am I rolling backwards?" was tested with a direction cosine, so accelerate never
+    braked while reversing.
+  - **Force curve:** the launch boost had a jump in engine force at 30 m/s.
+  - **Debug toggle:** toggling driving off mid-press left the throttle stuck on.
+- **New behaviour:**
+  - **Analog triggers:** half trigger means half power.
+  - **Brake, then reverse:** pressing the opposite direction brakes, then reverses.
+  - **Realistic speeds:** 0–100 km/h in ~9 s (was 1.4 s), top speed ~140 km/h, 100–0 km/h in
+    3.3 s over 43 m, reverse capped at 25 km/h (before, reverse had no limit and reached ~190 km/h).
+  - **HUD:** shows real km/h.
+- **Tuning:** every value is an export with a description. The car's tuning now lives in `Doge.tscn`
+  (it was overrides inside one level), as do its phone and the "TRAFFIC VIOLATION" label, so any level
+  that drops in the car gets the same car.
+- **Camera (`CarCamera`):** named views (road, rear, left window, phone) that glide at any frame rate.
+  The phone button works as **toggle** or **hold** (`phone_glance` export, both ready to playtest).
+  `is_looking_at_phone()` and `view_changed` are there for B3's distraction mechanics.
+- **Fixed:** the level instanced the phone twice. A render confirmed which copy was the visible one.
+- **Test course (`game/levels/test_course.tscn`, now the main scene):** a ~530 m loop from the road
+  kit, with a stop sign, 3 ordered checkpoints, a finish line just behind the start, and a timer/HUD
+  (`Course` emits `checkpoint_reached`, `finish_blocked`, `finished` for B4). `main.tscn` stays as
+  the ramps sandbox.
+- **Tests (in CI):**
+  - `test_car.gd` drives on flat ground at several frame-rate caps and requires identical results;
+    it also covers brakes, reverse, top speeds, steering, analog throttle, handbrake and both camera
+    modes.
+  - `test_course.gd` checks the checkpoint order and finish rules and drives through the stop sign.
+
+**Playtest options** (`Settings` autoload, saved between sessions):
+- **F6** switches the phone glance between **toggle** and **hold**.
+- **F7** cycles the phone between five **placements**: dash mount, vent mount, centre console, lap
+  and windshield. They trade how far the eyes leave the road against how much road the phone hides.
+  The phone is now real size (it was 0.38 × 0.8 m), faces the driver, and the glance aims and zooms
+  at it, so a new placement is one line in `PhoneMount.PLACEMENTS`.
+- A short note on screen confirms each change. Tests check that every placement's glance centres
+  the phone, and that the keys and saving work.
+- The car's tuning values are all exports on `BaseCar.gd`, with a comment on what they produce.
 
 ### B2. Phone core (5–8 days)
+- Pick a default phone placement and glance mode after playtesting the F6/F7 options (B1)
+- Put `ChatView` (built in A4) on the phone's SubViewport instead of the old typing test
 - Phone UI in the existing SubViewport-on-quad: message bubbles, scrolling history, typing
   indicator, option buttons
 - **Typing challenge:** show the target `Me:` text greyed out, fill it in as the player types

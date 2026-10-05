@@ -13,10 +13,6 @@ func you_win():
 	print("You Win")
 	get_tree().change_scene_to_file("res://game/ui/victory_screen.tscn")
 
-func _process(delta):
-	if not Global.is_driving:
-		$SubViewport/PhoneScreen/TextEdit.text
-		
 func _unhandled_input(event):
 	if event is InputEventKey and event.pressed == true:
 		print(event)
