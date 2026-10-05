@@ -1,7 +1,7 @@
 # Writing Guide: the texting screenplay format
 
-> Status: **draft (roadmap step A1)**. Items marked **(proposed)** are convention choices still
-> open for review. Anything else is a hard requirement of the engine.
+> Status: **agreed (roadmap step A1)**. Conventions here can still change; ask before
+> working around one.
 
 This is how conversations are written for the game. You write in plain text files using **Yarn**, a
 screenplay-like format, in VS Code. VS Code shows the branches as a graph while you write. The
@@ -97,7 +97,7 @@ TextingWhileDriving/dialogue/
 The player must type `Me:` text **exactly**. Typo tolerance will be playtested later, so for now write
 exactly what should appear in the sent bubble, including capitals and punctuation.
 
-**Typing difficulty (proposed).** Because the player types every `Me:` line while driving, the
+**Typing difficulty.** Because the player types every `Me:` line while driving, the
 characters in it decide how hard the message is to send. The plan is for typing to get harder in later
 levels, so here is a rough scale for how hard each kind of character is to type:
 

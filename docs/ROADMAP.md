@@ -104,7 +104,7 @@ Yarn Spinner for Godot (GDScript) Early Access 3.2:
 The addon isn't committed (licence). Install it with `tools/setup_yarn_spinner.sh` / `.ps1`.
 Compiling needs the `ysc` tool (.NET); see the results doc for setup.
 
-### A1. "Texting screenplay" conventions 📝 drafted, awaiting lead-writer review
+### A1. "Texting screenplay" conventions ✅ done
 The format is in [`docs/WRITING_GUIDE.md`](WRITING_GUIDE.md), with a copy-ready
 [`template.yarn`](writing/template.yarn) and [`Variables.yarn`](writing/Variables.yarn) (both compile
 cleanly). Summary:
