@@ -1,0 +1,14 @@
+[remap]
+
+importer="yarn_spinner.yarn_file"
+type="Resource"
+uid="uid://d2acbteh0vnhs"
+path="res://.godot/imported/Variables.yarn-6a4257feb2e2958d4b0b1e9860b940e1.res"
+
+[deps]
+
+source_file="res://dialogue/Variables.yarn"
+dest_files=["res://.godot/imported/Variables.yarn-6a4257feb2e2958d4b0b1e9860b940e1.res"]
+
+[params]
+

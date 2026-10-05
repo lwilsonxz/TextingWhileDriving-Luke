@@ -2,17 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b1ipy2uni5nj3"
-path.s3tc="res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.s3tc.ctex"
+uid="uid://ccbskqxhueceh"
+path.s3tc="res://.godot/imported/stop_sign_1_stop_sign_wikimedia.jpg-f51be292a41a504ff64d86aeb4d5d5b3.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
+generator_parameters={
+"md5": "a36e382140c11e7b24048f7c158abf16"
+}
 
 [deps]
 
-source_file="res://icon.svg"
-dest_files=["res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.s3tc.ctex"]
+source_file="res://game/world/models/stop_sign_1_stop_sign_wikimedia.jpg"
+dest_files=["res://.godot/imported/stop_sign_1_stop_sign_wikimedia.jpg-f51be292a41a504ff64d86aeb4d5d5b3.s3tc.ctex"]
 
 [params]
 
@@ -39,6 +42,3 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=0
-svg/scale=1.0
-editor/scale_with_editor_scale=false
-editor/convert_colors_with_editor_theme=false

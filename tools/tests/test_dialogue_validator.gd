@@ -16,7 +16,7 @@ func _initialize() -> void:
 		printerr("Couldn't load the validator.")
 		quit(2)
 		return
-	var hooks := repo_root.path_join("TextingWhileDriving/phone/dialogue_hooks.gd")
+	var hooks := repo_root.path_join("TextingWhileDriving/game/phone/dialogue_hooks.gd")
 
 	_test_writing_guide_template_passes(validator_script.new(), repo_root, hooks)
 	_test_marked_problems_are_reported(validator_script.new(), tests_dir.path_join("fixtures/invalid"), hooks)
