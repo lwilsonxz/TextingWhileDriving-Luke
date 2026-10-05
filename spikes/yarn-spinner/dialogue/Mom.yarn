@@ -1,0 +1,53 @@
+// Placeholder conversation exercising the proposed texting format (roadmap A1).
+// All text is placeholder; it is not story content.
+
+title: Mom_Spike_Start
+---
+<<declare $lied_to_mom = false>>
+<<declare $ignored_mom = false>>
+<<declare $mom_messages = 0>>
+Mom: placeholder incoming one #delay:1.5
+<<typing 0.2>>
+Mom: placeholder incoming two
+<<set $mom_messages = $mom_messages + 2>>
+<<if ran_stop_sign()>>
+    Mom: placeholder only shown when the stop sign was run
+<<endif>>
+-> Short label A
+    Me: exact text for option a
+    <<set $lied_to_mom to true>>
+    <<jump Mom_Spike_A>>
+-> Short label B
+    Me: text for option b, line one
+    Me: text for option b, line two
+    <<jump Mom_Spike_B>>
+-> Short label C <<if $mom_messages > 99>>
+    Me: this option is never available
+-> (no reply) #timeout:10
+    <<set $ignored_mom to true>>
+    <<jump Mom_Spike_Ignored>>
+===
+
+title: Mom_Spike_A
+---
+Mom: placeholder reply to a
+===
+
+title: Mom_Spike_B
+---
+Mom: placeholder reply to b
+===
+
+title: Mom_Spike_Ignored
+---
+Mom: placeholder reply to being ignored #delay:3
+===
+
+title: Mom_Spike_Followup
+---
+<<if $ignored_mom>>
+    Mom: placeholder followup after being ignored
+<<else>>
+    Mom: placeholder followup after a reply
+<<endif>>
+===

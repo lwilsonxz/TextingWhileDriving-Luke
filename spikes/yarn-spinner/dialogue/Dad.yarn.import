@@ -1,0 +1,14 @@
+[remap]
+
+importer="yarn_spinner.yarn_file"
+type="Resource"
+uid="uid://d0b1e5f3cgrpt"
+path="res://.godot/imported/Dad.yarn-2e5eee12411b0b106ce256985f052157.res"
+
+[deps]
+
+source_file="res://dialogue/Dad.yarn"
+dest_files=["res://.godot/imported/Dad.yarn-2e5eee12411b0b106ce256985f052157.res"]
+
+[params]
+

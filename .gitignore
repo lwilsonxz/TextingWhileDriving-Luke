@@ -1,1 +1,5 @@
 TextingWhileDriving/.godot/**
+.cache/
+**/addons/yarn_spinner/
+**/.godot/
+*.tmp

@@ -1,0 +1,12 @@
+// Second thread, run at the same time as Mom to test parallel conversations.
+
+title: Dad_Spike_Start
+---
+<<declare $dad_messages = 0>>
+Dad: placeholder dad one
+<<typing 0.1>>
+Dad: placeholder dad two
+<<typing 0.1>>
+Dad: placeholder dad three
+<<set $dad_messages = 3>>
+===
