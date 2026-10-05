@@ -1,59 +1,105 @@
 extends VehicleBody3D
+## Player car. Reads the drive_* input actions (gamepad triggers are analog)
+## and turns them into engine force, brakes and steering. Everything runs in
+## _physics_process on real units (m/s), so it behaves the same at any frame rate.
+##
+## The car's front faces -Z, so driving forward means negative engine_force.
+
+## Below this speed (m/s) the car counts as stopped: pressing the opposite
+## direction drives instead of braking.
+const STOPPED_SPEED := 1.0
+
+@export_group("Steering")
+## Maximum steering angle, in radians.
+@export var steer_limit := 0.6
+## How fast the wheels turn towards the target angle, in radians per second.
+@export var steer_speed := 1.5
+
+@export_group("Engine")
+## Engine force once the car is up to speed.
+@export var cruise_force := 40.0
+## Extra pull from a standstill: force is cruise_force × boost ÷ speed (m/s),
+## never below cruise_force or above max_force.
+@export var launch_boost := 10.0
+@export var reverse_boost := 3.0
+@export var max_force := 300.0
+## Engine force fades out over the last 15% below these speeds.
+@export var top_speed_kmh := 150.0
+@export var reverse_top_speed_kmh := 30.0
+
+@export_group("Brakes")
+## Brake when pressing the opposite direction to travel.
+@export var brake_force := 4.0
+@export var handbrake_force := 3.0
+## Rear wheel grip, normally and with the handbrake on (lower = slides more).
+@export var rear_grip := 3.0
+@export var handbrake_rear_grip := 0.8
+
+@export_group("Handling")
+## Pushes the car into the road, per m/s of speed, for grip at high speed.
+@export var downforce := 0.5
 
 
-@export var STEER_SPEED = 1.5
-@export var STEER_LIMIT = 0.6
-var steer_target = 0
-@export var engine_force_value = 40
+## Courses, traffic rules and triggers recognise the player's car by this group.
+const GROUP := &"player_car"
 
 
-func _ready():
-	pass
+func _ready() -> void:
+	add_to_group(GROUP)
 
 
-func _input(event):
+func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_toggle_driving"):
-		Global.is_driving = !Global.is_driving
+		Global.is_driving = not Global.is_driving
 
-func _physics_process(delta):
-	var speed = linear_velocity.length()*Engine.get_frames_per_second()*delta
-	traction(speed)
-	$Hud/speed.text=str(round(speed*3.8))+" KMPH"
 
-	if Global.is_driving:
-		var fwd_mps = transform.basis.x.x
-		steer_target = Input.get_action_strength("drive_steer_left") - Input.get_action_strength("drive_steer_right")
-		steer_target *= STEER_LIMIT
-		if Input.is_action_pressed("drive_reverse"):
-		# Increase engine force at low speeds to make the initial acceleration faster.
+func _physics_process(delta: float) -> void:
+	var speed := linear_velocity.length()
+	apply_central_force(Vector3.DOWN * downforce * speed)
+	$Hud/speed.text = "%d km/h" % roundi(speed * 3.6)
 
-			if speed < 20 and speed != 0:
-				engine_force = clamp(engine_force_value * 3 / speed, 0, 300)
-			else:
-				engine_force = engine_force_value
+	engine_force = 0.0
+	brake = 0.0
+	if not Global.is_driving:
+		_set_rear_grip(rear_grip)
+		return
+
+	var speed_forward := forward_speed()
+	var throttle := Input.get_action_strength("drive_accelerate")
+	var reverse := Input.get_action_strength("drive_reverse")
+	if throttle > 0.0:
+		if speed_forward < -STOPPED_SPEED:
+			brake = brake_force * throttle
 		else:
-			engine_force = 0
-		if Input.is_action_pressed("drive_accelerate"):
-			if fwd_mps >= -1:
-				if speed < 30 and speed != 0:
-					engine_force = -clamp(engine_force_value * 10 / speed, 0, 300)
-				else:
-					engine_force = -engine_force_value
-			else:
-				brake = 1
+			engine_force = -_drive_force(speed_forward, launch_boost, top_speed_kmh) * throttle
+	elif reverse > 0.0:
+		if speed_forward > STOPPED_SPEED:
+			brake = brake_force * reverse
 		else:
-			brake = 0.0
-			
-		if Input.is_action_pressed("drive_handbrake"):
-			brake=3
-			$wheal2.wheel_friction_slip=0.8
-			$wheal3.wheel_friction_slip=0.8
-		else:
-			$wheal2.wheel_friction_slip=3
-			$wheal3.wheel_friction_slip=3
-		steering = move_toward(steering, steer_target, STEER_SPEED * delta)
-		
-		
+			engine_force = _drive_force(-speed_forward, reverse_boost, reverse_top_speed_kmh) * reverse
 
-func traction(speed):
-	apply_central_force(Vector3.DOWN*speed/2)
+	if Input.is_action_pressed("drive_handbrake"):
+		brake = handbrake_force
+		_set_rear_grip(handbrake_rear_grip)
+	else:
+		_set_rear_grip(rear_grip)
+
+	var steer_input := Input.get_action_strength("drive_steer_left") - Input.get_action_strength("drive_steer_right")
+	steering = move_toward(steering, steer_input * steer_limit, steer_speed * delta)
+
+
+## Speed along the direction the car faces, in m/s (negative when reversing).
+func forward_speed() -> float:
+	return linear_velocity.dot(-global_basis.z)
+
+
+func _drive_force(speed_in_direction: float, boost: float, limit_kmh: float) -> float:
+	var speed := maxf(speed_in_direction, 0.01)
+	var top_speed := limit_kmh / 3.6
+	var fade := clampf((top_speed - speed) / (top_speed * 0.15), 0.0, 1.0)
+	return clampf(cruise_force * boost / speed, cruise_force, max_force) * fade
+
+
+func _set_rear_grip(grip: float) -> void:
+	$wheal2.wheel_friction_slip = grip
+	$wheal3.wheel_friction_slip = grip

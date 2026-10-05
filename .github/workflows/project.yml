@@ -9,6 +9,8 @@ on:
       - "tools/check_scenes.gd"
       - "tools/ci/**"
       - "tools/tests/test_dialogue_playtest.gd"
+      - "tools/tests/test_car.gd"
+      - "tools/tests/test_course.gd"
       - "tools/setup_yarn_spinner.sh"
       - ".github/workflows/project.yml"
   push:
@@ -18,6 +20,8 @@ on:
       - "tools/check_scenes.gd"
       - "tools/ci/**"
       - "tools/tests/test_dialogue_playtest.gd"
+      - "tools/tests/test_car.gd"
+      - "tools/tests/test_course.gd"
       - "tools/setup_yarn_spinner.sh"
       - ".github/workflows/project.yml"
   workflow_dispatch:
@@ -69,3 +73,9 @@ jobs:
 
       - name: Test the dialogue playtest scene
         run: tools/ci/run_godot.sh godot --headless --path TextingWhileDriving --script res://../tools/tests/test_dialogue_playtest.gd
+
+      - name: Test the car and camera
+        run: tools/ci/run_godot.sh godot --headless --path TextingWhileDriving --script res://../tools/tests/test_car.gd
+
+      - name: Test the course
+        run: tools/ci/run_godot.sh godot --headless --path TextingWhileDriving --script res://../tools/tests/test_course.gd

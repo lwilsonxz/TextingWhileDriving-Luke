@@ -238,17 +238,48 @@ a win state, and at least one story variable that carries into a second short dr
 - **Scene smoke check:** `tools/check_scenes.gd` loads and runs every scene and fails on any error.
   CI (`.github/workflows/project.yml`) runs it on every PR that touches the game.
 
-### B1. Driving core (3–5 days)
-- Clean up `BaseCar.gd`: sane speed units and tuning exports. **Bug found in B0:** its speed estimate
-  multiplies by the *rendering* frame rate (`Engine.get_frames_per_second()`), so acceleration changes
-  with FPS. A headless test drove ~10% further or shorter depending on frame rate. Use
-  `linear_velocity.length()` directly. Also consider analog throttle now that triggers are bound.
-- Fix `main.tscn` instancing `phone.tscn` twice (both copies receive keystrokes)
-- Camera: position/rotation preset pairs, with "glance at phone" vs "eyes on road" as the main toggle.
-  A hold-to-look mode is worth testing.
-- One course built from the GridMap road kit, plus start, checkpoints and finish trigger
+### B1. Driving core ✅ done
+- **Car controller rewritten (`game/car/BaseCar.gd`)**, with bugs fixed:
+  - **Frame rate:** acceleration depended on frame rate (speed was multiplied by the rendering FPS).
+    The same 2 s press ended at 92–136 km/h depending on FPS; now it's identical at any frame rate.
+  - **Braking:** "am I rolling backwards?" was tested with a direction cosine, so accelerate never
+    braked while reversing.
+  - **Force curve:** the launch boost had a jump in engine force at 30 m/s.
+  - **Debug toggle:** toggling driving off mid-press left the throttle stuck on.
+- **New behaviour:**
+  - **Analog triggers:** half trigger means half power.
+  - **Brake, then reverse:** pressing the opposite direction brakes, then reverses.
+  - **Top speeds:** 150 km/h forward, 30 km/h reverse. Before, reverse had no limit and reached
+    ~190 km/h.
+  - **Brakes:** strong enough to matter (136 → 43 km/h in 1 s).
+  - **HUD:** shows real km/h.
+- **Tuning:** every value is an export with a description. The car's tuning now lives in `Doge.tscn`
+  (it was overrides inside one level), as do its phone and the "TRAFFIC VIOLATION" label, so any level
+  that drops in the car gets the same car.
+- **Camera (`CarCamera`):** named views (road, rear, left window, phone) that glide at any frame rate.
+  The phone button works as **toggle** or **hold** (`phone_glance` export, both ready to playtest).
+  `is_looking_at_phone()` and `view_changed` are there for B3's distraction mechanics.
+- **Fixed:** the level instanced the phone twice. A render confirmed which copy was the visible one.
+- **Test course (`game/levels/test_course.tscn`, now the main scene):** a ~530 m loop from the road
+  kit, with a stop sign, 3 ordered checkpoints, a finish line just behind the start, and a timer/HUD
+  (`Course` emits `checkpoint_reached`, `finish_blocked`, `finished` for B4). `main.tscn` stays as
+  the ramps sandbox.
+- **Tests (in CI):**
+  - `test_car.gd` drives on flat ground at several frame-rate caps and requires identical results;
+    it also covers brakes, reverse, top speeds, steering, analog throttle, handbrake and both camera
+    modes.
+  - `test_course.gd` checks the checkpoint order and finish rules and drives through the stop sign.
+
+**For playtesting (tuning, not bugs):**
+- The car is very quick: 0 → 136 km/h in 2 s. All values are exports on the `car` node in `Doge.tscn`.
+- Phone glance: toggle vs hold.
+- The in-car phone is a large upright panel in the middle of the dashboard that blocks part of the
+  road. Its size and placement are B2 work.
 
 ### B2. Phone core (5–8 days)
+- Size and place the in-car phone (today it's a large upright panel blocking the dashboard), and aim
+  `CarCamera`'s phone view at it
+- Put `ChatView` (built in A4) on the phone's SubViewport instead of the old typing test
 - Phone UI in the existing SubViewport-on-quad: message bubbles, scrolling history, typing
   indicator, option buttons
 - **Typing challenge:** show the target `Me:` text greyed out, fill it in as the player types
