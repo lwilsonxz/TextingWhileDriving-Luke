@@ -54,6 +54,9 @@ var _node_refs: Array[Dictionary] = []  # {target, file, line} from <<start_thre
 var _speakers := {}   # exact name -> {file, line, count}
 
 
+## Checks every .yarn file under `dialogue_dir`. Steps: read the game hooks,
+## run the Yarn compiler, check each file's conventions, then a few
+## whole-project checks (node references, name spellings).
 func run(dialogue_dir: String, hooks_path: String, ysc := "ysc") -> Dictionary:
 	_issues.clear()
 	_stats.clear()
@@ -104,12 +107,17 @@ func _drop_duplicate_compiler_issues() -> void:
 		issue.code.begins_with("compiler") and explained.has("%s:%d" % [issue.file, issue.line])))
 
 
+# Records a problem. `code` is a short id (e.g. "missing-me-line") used by the
+# tests and shown in brackets; `message` tells the writer how to fix it.
 func _add(file: String, line: int, severity: String, code: String, message: String) -> void:
 	_issues.append({"file": file, "line": line, "severity": severity, "code": code, "message": message})
 
 
 # --- hooks ------------------------------------------------------------------
 
+# Finds the game's functions and commands by reading dialogue_hooks.gd as text:
+# each `static func _yarn_function_*` / `_yarn_command_*` line, its parameter
+# types, and the `##` comment above it (shown to writers in autocomplete).
 func _read_hooks(hooks_path: String) -> void:
 	_functions.clear()
 	_commands.clear()
@@ -140,6 +148,7 @@ func _read_hooks(hooks_path: String) -> void:
 			doc.clear()
 
 
+# GDScript type name -> Yarn's type name.
 func _yarn_type(gd_type: String) -> String:
 	match gd_type:
 		"bool": return "bool"
@@ -149,6 +158,8 @@ func _yarn_type(gd_type: String) -> String:
 		_: return "any"
 
 
+# The hooks in the .ysls.json format the Yarn compiler reads, so it knows each
+# function's argument and return types.
 func _definitions_json() -> String:
 	var functions := []
 	for name in _functions:
@@ -176,6 +187,7 @@ func _definitions_json() -> String:
 
 # --- compiler ---------------------------------------------------------------
 
+# Every .yarn file under `root`, sorted so reports are stable.
 func _find_yarn_files(root: String) -> Array[String]:
 	var result: Array[String] = []
 	var dir := DirAccess.open(root)
@@ -244,6 +256,7 @@ func _compile(dialogue_dir: String, files: Array[String], ysc: String) -> void:
 	_remove_dir(temp)
 
 
+# Deletes a folder and everything in it (the compiler's temp copy).
 func _remove_dir(path: String) -> void:
 	var dir := DirAccess.open(path)
 	if dir == null:
@@ -255,12 +268,22 @@ func _remove_dir(path: String) -> void:
 	DirAccess.remove_absolute(path)
 
 
+# "/repo/TextingWhileDriving/dialogue/L1/Mom.yarn" -> "L1/Mom.yarn"
 func _relative(root: String, path: String) -> String:
 	return path.simplify_path().trim_prefix(root.simplify_path()).trim_prefix("/")
 
 
 # --- conventions --------------------------------------------------------------
 
+# Checks one file line by line. Yarn files are a series of nodes: header lines
+# (`title: ...`), then `---`, the body, and `===`. In the body we classify each
+# line as a command (`<<...>>`), a choice (`-> ...`) or a message (`Name: ...`).
+#
+# Choices are tracked by indentation, like Yarn itself: a run of `->` lines at
+# the same indent is one "choice set", and the more-indented lines under a choice
+# are its body. `groups` holds the choice sets still open and `choices` the
+# choices still open; when a line is less indented, those end and get checked
+# (e.g. "did this choice have a Me: line?").
 func _check_file(dialogue_dir: String, path: String) -> void:
 	var file := _relative(dialogue_dir, path)
 	var is_variables_file := file == VARIABLES_FILE
@@ -283,6 +306,7 @@ func _check_file(dialogue_dir: String, path: String) -> void:
 	for index in lines.size():
 		var number := index + 1
 		var raw := lines[index].replace("\r", "")
+		# Header lines, before `---`.
 		if not in_body:
 			var header := raw.strip_edges()
 			if header.begins_with("title:"):
@@ -299,6 +323,7 @@ func _check_file(dialogue_dir: String, path: String) -> void:
 			title = ""
 			continue
 
+		# Checked before stripping comments, because `//` itself is the problem.
 		if _find_unescaped(raw, "://") != -1:
 			_add(file, number, "error", "unescaped-comment",
 				"`//` starts a comment, so everything after it is dropped. Write `\\/\\/` (e.g. `http:\\/\\/`).")
@@ -337,6 +362,7 @@ func _check_file(dialogue_dir: String, path: String) -> void:
 			stats.choices += 1
 			continue
 
+		# A message: everything before the first colon is the sender.
 		var colon: int = _find_unescaped(parts.text, ":")
 		if colon <= 0:
 			_add(file, number, "error", "missing-sender",
@@ -361,6 +387,7 @@ func _check_file(dialogue_dir: String, path: String) -> void:
 			var typed := _unescape(message)
 			stats.me_characters += typed.length()
 			stats["typing_" + _typing_tier(typed)] += 1
+			# A Me: line indented under a choice counts as that choice's typed text.
 			if not choices.is_empty() and choices.back().indent < indent:
 				choices.back().me_lines += 1
 		else:
@@ -371,6 +398,8 @@ func _check_file(dialogue_dir: String, path: String) -> void:
 	_close_groups(file, groups, choices, -1)
 
 
+# Node titles must be <Thread>_<Level>_<Beat> and match the file name and level
+# folder, e.g. L1/Mom.yarn holds Mom_L1_*.
 func _check_title(file: String, line: int, title: String, thread: String, folder: String, is_variables_file: bool) -> void:
 	_titles[title] = {"file": file, "line": line}
 	if is_variables_file:
@@ -388,6 +417,8 @@ func _check_title(file: String, line: int, title: String, thread: String, folder
 			"This file is in %s/, so its node titles should say `_%s_` (this one says `_%s_`)." % [folder, folder, m.get_string(2)])
 
 
+# A `<<command ...>>` line: is it a known command, is <<declare>> in the right
+# file, and which nodes does it point to (for the entry-point list).
 func _check_command(file: String, line: int, text: String, is_variables_file: bool) -> void:
 	var inner := text.trim_prefix("<<")
 	var end := inner.find(">>")
@@ -428,6 +459,7 @@ func _check_expressions(file: String, line: int, text: String, whole_is_expressi
 			"Unknown function %s(). Use one from docs/WRITING_GUIDE.md §8, or ask a programmer to add it." % name)
 
 
+# Is `position` inside a {...} interpolation?
 func _inside_braces(text: String, position: int) -> bool:
 	var before := text.substr(0, position)
 	return before.rfind("{") > before.rfind("}")
@@ -470,6 +502,7 @@ func _close_groups(file: String, groups: Array[Dictionary], choices: Array[Dicti
 			choices.clear()
 
 
+# Rules for one set of choices, checked when the set ends.
 func _check_choice_set(file: String, group: Dictionary) -> void:
 	var visible := 0
 	var timeouts := 0
@@ -490,12 +523,14 @@ func _check_choice_set(file: String, group: Dictionary) -> void:
 			"%d visible choices; the limit is %d." % [visible, MAX_VISIBLE_CHOICES])
 
 
+# <<start_thread>> targets can only be checked once every file has been read.
 func _check_node_references() -> void:
 	for ref in _node_refs:
 		if not _titles.has(ref.target):
 			_add(ref.file, ref.line, "error", "unknown-node", "<<start_thread>> names a node that doesn't exist: %s" % ref.target)
 
 
+# Remembers each sender name and where it first appears (for the spelling check).
 func _note_speaker(file: String, line: int, speaker: String) -> void:
 	if not _speakers.has(speaker):
 		_speakers[speaker] = {"file": file, "line": line, "count": 0}
@@ -539,6 +574,8 @@ func _split_line(text: String) -> Dictionary:
 	return {"text": text, "condition": condition, "tags": tags}
 
 
+# Like String.find(), but skips anything escaped with a backslash, so `\#` and
+# `\[` aren't mistaken for a tag or markup.
 func _find_unescaped(text: String, needle: String, from := 0) -> int:
 	var i := from
 	while i <= text.length() - needle.length():
@@ -551,11 +588,13 @@ func _find_unescaped(text: String, needle: String, from := 0) -> int:
 	return -1
 
 
+# Removes a `// comment` from the end of a line (Yarn ignores those).
 func _strip_comment(line: String) -> String:
 	var comment := _find_unescaped(line, "//")
 	return line if comment == -1 else line.substr(0, comment)
 
 
+# How far a line is indented, counting a tab as 4 spaces.
 func _indent_width(line: String) -> int:
 	var width := 0
 	for c in line:
@@ -568,6 +607,7 @@ func _indent_width(line: String) -> int:
 	return width
 
 
+# The text as the player sees it: `\#` becomes `#`, and so on.
 func _unescape(text: String) -> String:
 	var result := ""
 	var i := 0

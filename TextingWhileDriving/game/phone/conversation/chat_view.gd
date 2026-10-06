@@ -7,17 +7,22 @@ extends PanelContainer
 ## nodes, so it can be dropped into any scene (the playtest scene now, the
 ## in-car phone later).
 
+## The player clicked a choice button (index into the list given to show_choices).
 signal choice_selected(index: int)
+## The player typed the whole message correctly and pressed Enter.
 signal message_sent(text: String)
 
+# Colours, roughly an iPhone Messages look. Change them here to restyle the phone.
 const INCOMING_COLOR := Color("e9e9eb")
 const OUTGOING_COLOR := Color("0a84ff")
 const BACKGROUND_COLOR := Color("ffffff")
 const TEXT_DARK := Color("111111")
 const TEXT_LIGHT := Color("ffffff")
 const MUTED := Color("8e8e93")
+## Longest a message bubble gets before the text wraps (pixels).
 const MAX_BUBBLE_WIDTH := 260
 
+# The child nodes, created in _build().
 var _header: Label
 var _scroll: ScrollContainer
 var _messages: VBoxContainer
@@ -29,11 +34,13 @@ var _typing_box: PanelContainer
 var _typing_label: RichTextLabel
 var _typing_hint: Label
 
+# Typing challenge state: the message to type, what's been typed so far.
 var _target := ""
 var _typed := ""
 var _typing_active := false
+# Seconds left on the reply countdown bar.
 var _timeout_left := 0.0
-var _timeout_total := 0.0
+# Who sent the last bubble, so a run of messages from one person shows their name once.
 var _last_sender := ""
 
 
@@ -41,10 +48,12 @@ func _ready() -> void:
 	_build()
 
 
+## The name at the top of the screen (who the conversation is with).
 func set_title(title: String) -> void:
 	_header.text = title
 
 
+## Empties the screen for a new conversation.
 func clear() -> void:
 	for child in _messages.get_children():
 		if child != _typing_indicator:
@@ -56,6 +65,7 @@ func clear() -> void:
 	_last_sender = ""
 
 
+## A grey bubble on the left, with the sender's name above the first of a run.
 func add_incoming(sender: String, text: String) -> void:
 	if sender != _last_sender:
 		var name_label := _label(sender, MUTED, 12)
@@ -65,11 +75,13 @@ func add_incoming(sender: String, text: String) -> void:
 	_add_message(_bubble(text, INCOMING_COLOR, TEXT_DARK, false))
 
 
+## A blue bubble on the right: a message the player sent.
 func add_outgoing(text: String) -> void:
 	_last_sender = ""
 	_add_message(_bubble(text, OUTGOING_COLOR, TEXT_LIGHT, true))
 
 
+## Small centred grey text, for phone events like "Mom left the chat".
 func add_notice(text: String) -> void:
 	_last_sender = ""
 	var label := _label(text, MUTED, 12)
@@ -78,6 +90,7 @@ func add_notice(text: String) -> void:
 	_add_message(label)
 
 
+## "Mom is typing…" under the last message, until hide_typing_indicator().
 func show_typing_indicator(sender: String) -> void:
 	_typing_indicator_label.text = "%s is typing…" % sender
 	_typing_indicator.visible = true
@@ -106,6 +119,7 @@ func show_choices(choices: Array) -> void:
 	_choices.visible = not choices.is_empty()
 
 
+## Removes the choice buttons (after one is picked, or when time runs out).
 func clear_choices() -> void:
 	for child in _choices.get_children():
 		child.queue_free()
@@ -117,6 +131,7 @@ func press_choice(index: int) -> void:
 	choice_selected.emit(index)
 
 
+## The text on each choice button currently shown. Used by tests.
 func choice_texts() -> Array[String]:
 	var texts: Array[String] = []
 	for child in _choices.get_children():
@@ -125,8 +140,9 @@ func choice_texts() -> Array[String]:
 	return texts
 
 
+## Shows a bar above the choices that empties over `seconds` (the reply deadline).
+## It's only a display: ChatPresenter decides what happens when time runs out.
 func show_timeout(seconds: float) -> void:
-	_timeout_total = seconds
 	_timeout_left = seconds
 	_timeout_bar.max_value = seconds
 	_timeout_bar.value = seconds
@@ -148,6 +164,7 @@ func start_typing(target: String) -> void:
 	_refresh_typing()
 
 
+## Hides the typing box (the message was sent, or the conversation stopped).
 func stop_typing() -> void:
 	_typing_active = false
 	_typing_box.visible = false
@@ -160,7 +177,7 @@ func is_typing() -> bool:
 
 
 ## Every visible message, oldest first, as "sender: text" / "Me: text" / "* notice".
-## Used by tests and the playtest log.
+## Used by tests to check what the player would see.
 func transcript() -> Array[String]:
 	var lines: Array[String] = []
 	var sender := ""
@@ -179,12 +196,18 @@ func transcript() -> Array[String]:
 	return lines
 
 
+# Counts the reply bar down.
 func _process(delta: float) -> void:
 	if _timeout_bar.visible and _timeout_left > 0.0:
 		_timeout_left = maxf(_timeout_left - delta, 0.0)
 		_timeout_bar.value = _timeout_left
 
 
+# Typing: every key press while the typing box is open lands here. Enter sends
+# (only if the text matches), Backspace deletes, anything else types a character.
+# We read the character the key produced (event.unicode), so Shift, accents and
+# keyboard layouts all work. Handled keys are marked handled so they don't also
+# drive the car or trigger other actions.
 func _input(event: InputEvent) -> void:
 	if not _typing_active or not (event is InputEventKey) or not event.pressed:
 		return
@@ -203,6 +226,8 @@ func _input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
+# Redraws the typing box: what's typed correctly in dark text, the first mistake
+# onwards in red underline, and the rest of the message still to type in grey.
 func _refresh_typing() -> void:
 	if not _typing_active:
 		return
@@ -220,12 +245,17 @@ func _refresh_typing() -> void:
 		_typing_hint.text = "Type the message"
 
 
+# The typing box uses BBCode for colours, so a literal "[" in a message must be
+# escaped or it would be read as formatting.
 func _escape(text: String) -> String:
 	return text.replace("[", "[lb]")
 
 
 # --- building -----------------------------------------------------------------
 
+# Creates the screen's layout, top to bottom: contact name, scrolling messages
+# (with the typing indicator kept last), reply countdown bar, choice buttons,
+# and the typing box. Built in code so the view works in any scene.
 func _build() -> void:
 	var background := StyleBoxFlat.new()
 	background.bg_color = BACKGROUND_COLOR
@@ -286,6 +316,7 @@ func _build() -> void:
 	column.add_child(_typing_box)
 
 
+# A wrapping text label in the given colour and size.
 func _label(text: String, color: Color, size: int) -> Label:
 	var label := Label.new()
 	label.text = text
@@ -295,6 +326,9 @@ func _label(text: String, color: Color, size: int) -> Label:
 	return label
 
 
+# One message bubble. It's a row with an empty spacer on one side, which pushes
+# the bubble to the right (outgoing) or left (incoming). The "kind" and "text"
+# tags let transcript() read the conversation back.
 func _bubble(text: String, color: Color, text_color: Color, outgoing: bool) -> Control:
 	var row := HBoxContainer.new()
 	row.set_meta("kind", "outgoing" if outgoing else "incoming")
@@ -312,6 +346,7 @@ func _bubble(text: String, color: Color, text_color: Color, outgoing: bool) -> C
 	style.content_margin_bottom = 6
 	bubble.add_theme_stylebox_override("panel", style)
 	var label := _label(text, text_color, 15)
+	# Short messages get snug bubbles; long ones wrap at MAX_BUBBLE_WIDTH.
 	label.custom_minimum_size.x = mini(MAX_BUBBLE_WIDTH, maxi(24, text.length() * 9))
 	bubble.add_child(label)
 
@@ -324,12 +359,15 @@ func _bubble(text: String, color: Color, text_color: Color, outgoing: bool) -> C
 	return row
 
 
+# Adds a message below the others, keeping the typing indicator at the bottom.
 func _add_message(node: Control) -> void:
 	_messages.add_child(node)
 	_messages.move_child(_typing_indicator, -1)
 	_scroll_to_bottom()
 
 
+# Scrolls to the newest message. Waits a frame first because the new message's
+# size (and so the scroll range) is only known after layout.
 func _scroll_to_bottom() -> void:
 	await get_tree().process_frame
 	if is_instance_valid(_scroll):

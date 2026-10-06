@@ -35,6 +35,7 @@ const PHONE_SCALE := 0.2
 
 
 func _ready() -> void:
+	# Use the playtest setting for placement, and follow it if F7 changes it.
 	var settings := get_node_or_null("/root/Settings")
 	if follow_settings and settings != null:
 		placement = settings.phone_placement
@@ -62,6 +63,8 @@ func place_at(spot: Vector3) -> void:
 	var camera := get_parent().get_node_or_null("FirstPersonCamera") as CarCamera
 	if camera == null:
 		return
+	# Aim the phone view: lean from the eyes towards the screen, then zoom so the
+	# screen fills SCREEN_FILL of the view (field of view from its size and distance).
 	var screen := transform * _screen_offset()
 	var to_screen := (screen - EYES).normalized()
 	var eye := EYES + to_screen * LEAN

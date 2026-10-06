@@ -23,18 +23,21 @@ func _ready() -> void:
 	_build_note()
 
 
+## Changes the phone glance mode, saves it, and tells listeners (the car camera).
 func set_phone_glance(mode: int) -> void:
 	phone_glance = mode
 	_save()
 	changed.emit(&"phone_glance")
 
 
+## Changes the phone placement, saves it, and tells listeners (the phone mount).
 func set_phone_placement(placement: StringName) -> void:
 	phone_placement = placement
 	_save()
 	changed.emit(&"phone_placement")
 
 
+# F6 / F7: cycle to the next option and show what it is now.
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_cycle_phone_glance"):
 		set_phone_glance((phone_glance + 1) % CarCamera.PhoneGlance.size())
@@ -53,6 +56,7 @@ func show_note(text: String) -> void:
 	_note_time_left = 2.5
 
 
+# Hides the note once its time is up.
 func _process(delta: float) -> void:
 	if _note_time_left > 0.0:
 		_note_time_left -= delta
@@ -60,6 +64,7 @@ func _process(delta: float) -> void:
 			_note.visible = false
 
 
+# Reads saved settings, if any. Unknown or missing values keep their defaults.
 func _load() -> void:
 	var file := ConfigFile.new()
 	if file.load(FILE) != OK:
@@ -70,6 +75,7 @@ func _load() -> void:
 		phone_placement = placement
 
 
+# Writes the settings to user://settings.cfg (in Godot's per-user data folder).
 func _save() -> void:
 	var file := ConfigFile.new()
 	file.set_value("phone", "glance", phone_glance)
@@ -77,6 +83,7 @@ func _save() -> void:
 	file.save(FILE)
 
 
+# The on-screen note, drawn above everything else (CanvasLayer 10).
 func _build_note() -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 10

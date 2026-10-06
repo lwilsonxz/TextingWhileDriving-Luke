@@ -68,6 +68,8 @@ func _test_marked_problems_are_reported(validator, fixtures: String, hooks: Stri
 			_check(false, "not expected: %s (%s)" % [key, reported[key]])
 
 
+# Reads every `// expect: code` / `// expect-next: code` comment in the fixture
+# files into "file:line code" keys.
 func _collect_expectations(root: String, dir_path: String, into: Dictionary) -> void:
 	var dir := DirAccess.open(dir_path)
 	for sub in dir.get_directories():

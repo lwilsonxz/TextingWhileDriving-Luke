@@ -13,6 +13,8 @@ extends SceneTree
 ## Needs the Yarn compiler: dotnet tool install --global YarnSpinner.Console --version 3.2.2
 
 
+# Reads the options, runs the validator, prints problems (and GitHub annotations
+# in CI), then the report. The exit code tells CI whether to fail.
 func _initialize() -> void:
 	var repo_root := ProjectSettings.globalize_path(get_script().resource_path).get_base_dir().get_base_dir()
 	var options := {
@@ -70,6 +72,7 @@ func _initialize() -> void:
 	quit(1 if errors > 0 or (options.strict and warnings > 0) else 0)
 
 
+# The per-file table and the entry-point list.
 func _print_report(result: Dictionary) -> void:
 	if result.stats.is_empty():
 		return
@@ -94,6 +97,7 @@ func _absolute(path: String) -> String:
 	return path if path.is_absolute_path() else ProjectSettings.globalize_path("res://").path_join(path).simplify_path()
 
 
+# Shorter paths in messages: relative to where the command was run.
 func _relative_to_cwd(path: String) -> String:
 	var cwd := ProjectSettings.globalize_path("res://").simplify_path()
 	return path.simplify_path().trim_prefix(cwd).trim_prefix("/")

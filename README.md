@@ -5,6 +5,7 @@ told through the conversations on your phone. Built with Godot 4.6 (GDScript onl
 
 - **Plans and decisions:** [`docs/ROADMAP.md`](docs/ROADMAP.md)
 - **Writing dialogue:** [`docs/WRITING_GUIDE.md`](docs/WRITING_GUIDE.md)
+- **Reading the code:** [`docs/CODE_TOUR.md`](docs/CODE_TOUR.md)
 
 ## Setup
 

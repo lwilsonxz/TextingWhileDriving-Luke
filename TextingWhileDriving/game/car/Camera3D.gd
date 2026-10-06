@@ -43,6 +43,7 @@ var _base_fov := 75.0
 
 
 func _ready() -> void:
+	# Use the playtest setting for toggle vs hold, and follow it if F6 changes it.
 	var settings := get_node_or_null("/root/Settings")
 	if follow_settings and settings != null:
 		phone_glance = settings.phone_glance
@@ -61,6 +62,7 @@ func set_view_pose(view_name: StringName, view_position: Vector3, view_rotation:
 		views[view_name].fov = view_fov
 
 
+## Switches to a view; the camera then glides there.
 func set_view(new_view: StringName) -> void:
 	if new_view == view or not views.has(new_view):
 		return
@@ -68,6 +70,7 @@ func set_view(new_view: StringName) -> void:
 	view_changed.emit(view)
 
 
+## True while the driver's eyes are on the phone (and so off the road).
 func is_looking_at_phone() -> bool:
 	return view == PHONE
 
@@ -78,6 +81,8 @@ func snap_to(new_view: StringName) -> void:
 	_snap_to(view)
 
 
+# Each frame: react to the view buttons, then move a little closer to the
+# current view's position, rotation and zoom.
 func _process(delta: float) -> void:
 	_read_input()
 	var target: Dictionary = views[view]
@@ -87,6 +92,7 @@ func _process(delta: float) -> void:
 	fov = lerpf(fov, target.get("fov", _base_fov), weight)
 
 
+# The view buttons. Pressing a view's button again returns to the road.
 func _read_input() -> void:
 	if Input.is_action_just_pressed("camera_front_view"):
 		set_view(ROAD)
@@ -105,6 +111,7 @@ func _read_input() -> void:
 				set_view(ROAD)
 
 
+# Jumps the camera to a view instantly.
 func _snap_to(view_name: StringName) -> void:
 	position = views[view_name].position
 	quaternion = Quaternion.from_euler(views[view_name].rotation)

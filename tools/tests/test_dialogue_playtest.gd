@@ -169,6 +169,7 @@ func _test_delays() -> void:
 
 # --- helpers -------------------------------------------------------------------
 
+# Types text as key presses (the character each key would produce).
 func _type(text: String) -> void:
 	for c in text:
 		var event := InputEventKey.new()
@@ -177,6 +178,7 @@ func _type(text: String) -> void:
 		Input.parse_input_event(event)
 
 
+# Presses a single key (Enter, Backspace, ...).
 func _press(key: Key) -> void:
 	var event := InputEventKey.new()
 	event.pressed = true
@@ -185,6 +187,7 @@ func _press(key: Key) -> void:
 	Input.parse_input_event(event)
 
 
+# Waits until `condition` returns true, or fails after TIMEOUT seconds.
 func _wait_until(condition: Callable) -> void:
 	var waited := 0.0
 	while not condition.call() and waited < TIMEOUT:

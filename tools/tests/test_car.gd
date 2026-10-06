@@ -145,6 +145,8 @@ func _measure() -> Dictionary:
 	return r
 
 
+# Camera views, both phone-glance modes, the view_changed signal, every phone
+# placement, and the F6/F7 playtest settings.
 func _test_camera() -> void:
 	print("")
 	print("Camera:")
@@ -226,11 +228,13 @@ func _tap(action: String) -> void:
 		await _frames(2)
 
 
+# Waits `count` rendered frames.
 func _frames(count: int) -> void:
 	for i in count:
 		await process_frame
 
 
+# Puts the car back at the start, stopped and with straight wheels, and lets it settle.
 func _reset() -> void:
 	car.global_transform = _spawn
 	car.linear_velocity = Vector3.ZERO
@@ -242,6 +246,7 @@ func _reset() -> void:
 	await _ticks(10)
 
 
+# Holds input actions (action name -> strength 0..1) for `seconds` of physics time.
 func _hold(actions: Dictionary, seconds: float) -> void:
 	for action in actions:
 		Input.action_press(action, actions[action])
@@ -250,6 +255,7 @@ func _hold(actions: Dictionary, seconds: float) -> void:
 		Input.action_release(action)
 
 
+# Waits `count` physics ticks (1/60 s each).
 func _ticks(count: int) -> void:
 	for i in count:
 		await physics_frame

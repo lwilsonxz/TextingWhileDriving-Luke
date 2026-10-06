@@ -20,6 +20,9 @@ const NOT_STANDALONE := [
 const IGNORED_ERROR_SOURCES := ["servers/rendering/dummy/"]
 
 
+# Godot hands every error and warning to registered Loggers. This one keeps the
+# errors (not warnings) so we can tell which scene caused them. Errors can come
+# from other threads, hence the mutex.
 class ErrorCounter extends Logger:
 	var errors: Array[String] = []
 	var _mutex := Mutex.new()
@@ -46,6 +49,9 @@ class ErrorCounter extends Logger:
 		return result
 
 
+# For each scene: load it, create it, add it to the tree (which runs its
+# _ready), let it run for a few frames, then free it. Any error logged in
+# between counts against that scene.
 func _initialize() -> void:
 	var counter := ErrorCounter.new()
 	OS.add_logger(counter)
@@ -87,6 +93,7 @@ func _initialize() -> void:
 	quit(1 if failed > 0 else 0)
 
 
+# Every .tscn in the project except the addons folder.
 func _find_scenes(dir_path: String, into: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:

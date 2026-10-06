@@ -51,16 +51,20 @@ func _ready() -> void:
 	add_to_group(GROUP)
 
 
+# F5 (debug): stop responding to the driving controls, e.g. to test typing alone.
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_toggle_driving"):
 		Global.is_driving = not Global.is_driving
 
 
+# Runs every physics tick (60 times a second): read the controls, then set the
+# engine, brakes and steering for Godot's vehicle physics to apply.
 func _physics_process(delta: float) -> void:
 	var speed := linear_velocity.length()
 	apply_central_force(Vector3.DOWN * downforce * speed)
-	$Hud/speed.text = "%d km/h" % roundi(speed * 3.6)
+	$Hud/speed.text = "%d km/h" % roundi(speed * 3.6)  # m/s to km/h
 
+	# Start from "coasting" each tick; the controls below add to it.
 	engine_force = 0.0
 	brake = 0.0
 	if not Global.is_driving:
@@ -70,6 +74,9 @@ func _physics_process(delta: float) -> void:
 	var speed_forward := forward_speed()
 	var throttle := Input.get_action_strength("drive_accelerate")
 	var reverse := Input.get_action_strength("drive_reverse")
+	# Accelerate: if rolling backwards, brake first; otherwise drive forward.
+	# Reverse: if rolling forwards, brake first; otherwise drive backwards.
+	# Triggers are analog, so half pressed means half the force or braking.
 	if throttle > 0.0:
 		if speed_forward < -STOPPED_SPEED:
 			brake = brake_force * throttle
@@ -81,12 +88,14 @@ func _physics_process(delta: float) -> void:
 		else:
 			engine_force = _drive_force(-speed_forward, reverse_boost, reverse_top_speed_kmh) * reverse
 
+	# Handbrake: brakes and loosens the rear wheels' grip, so the back can slide out.
 	if Input.is_action_pressed("drive_handbrake"):
 		brake = handbrake_force
 		_set_rear_grip(handbrake_rear_grip)
 	else:
 		_set_rear_grip(rear_grip)
 
+	# Steering: -1 (full right) to +1 (full left), turned gradually rather than snapping.
 	var steer_input := Input.get_action_strength("drive_steer_left") - Input.get_action_strength("drive_steer_right")
 	steering = move_toward(steering, steer_input * steer_limit, steer_speed * delta)
 
@@ -96,6 +105,8 @@ func forward_speed() -> float:
 	return linear_velocity.dot(-global_basis.z)
 
 
+# Engine force for the current speed: extra pull when slow (launch boost), the
+# cruise force once moving, fading to nothing as the car nears its top speed.
 func _drive_force(speed_in_direction: float, boost: float, limit_kmh: float) -> float:
 	var speed := maxf(speed_in_direction, 0.01)
 	var top_speed := limit_kmh / 3.6
@@ -103,6 +114,7 @@ func _drive_force(speed_in_direction: float, boost: float, limit_kmh: float) -> 
 	return clampf(cruise_force * boost / speed, cruise_force, max_force) * fade
 
 
+# Rear wheels are wheal2 and wheal3 (names from the original Car-Demo).
 func _set_rear_grip(grip: float) -> void:
 	$wheal2.wheel_friction_slip = grip
 	$wheal3.wheel_friction_slip = grip
