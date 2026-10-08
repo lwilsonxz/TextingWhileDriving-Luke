@@ -49,6 +49,8 @@ func run_line(line: YarnLine, token: YarnCancellationToken = null) -> void:
 			# Wait, a frame at a time, until it's sent or the dialogue is stopped.
 			while not state.sent and not _cancelled(token):
 				await get_tree().process_frame
+			if not is_instance_valid(view):
+				return
 			view.message_sent.disconnect(on_sent)
 			view.stop_typing()
 			if not state.sent:
@@ -62,7 +64,8 @@ func run_line(line: YarnLine, token: YarnCancellationToken = null) -> void:
 		if delay > 0.0:
 			view.show_typing_indicator(sender)
 			await _wait(delay, token)
-			view.hide_typing_indicator()
+			if is_instance_valid(view):
+				view.hide_typing_indicator()
 			if _cancelled(token):
 				return
 		view.add_incoming(sender, text)
@@ -113,6 +116,8 @@ func run_options(options: Array[YarnOption], token: YarnCancellationToken = null
 		waited += get_process_delta_time()
 		if timeout_option >= 0 and waited >= timeout_seconds:
 			state.choice = timeout_option
+	if not is_instance_valid(view):
+		return -1
 	view.choice_selected.disconnect(on_choice)
 	view.clear_choices()
 	view.hide_timeout()
@@ -153,6 +158,7 @@ func _wait(seconds: float, token: YarnCancellationToken) -> void:
 
 
 ## Only a real stop ends a wait. "Hurry up" requests are ignored: a typing
-## challenge or a choice can't be skipped.
+## challenge or a choice can't be skipped. Losing the phone screen (the level
+## ended) also counts as a stop.
 func _cancelled(token: YarnCancellationToken) -> bool:
-	return (token != null and token.is_cancelled) or not is_inside_tree()
+	return (token != null and token.is_cancelled) or not is_inside_tree() or not is_instance_valid(view)

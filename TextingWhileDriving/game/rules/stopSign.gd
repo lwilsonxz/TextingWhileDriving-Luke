@@ -1,6 +1,7 @@
 extends Area3D
-## A stop sign. If the car drives through without (nearly) stopping, it shows
-## "TRAFFIC VIOLATION!" on the car's HUD.
+## A stop sign. If the car drives through without (nearly) stopping, that's a
+## traffic violation: the car records it (shown on its HUD, and readable by
+## conversations through ran_stop_sign() and violations()).
 ##
 ## How it works: the Area3D covers the road at the sign. While the car is inside,
 ## we track its speed along the direction of travel; when it leaves, if it never
@@ -11,8 +12,7 @@ extends Area3D
 ## connected to the functions below (roadmap C1 makes this a drag-in piece).
 ##
 ## NOTE: roadmap step B3 turns this into a general TrafficRule. Known limits:
-## it tracks one car at a time, prints every frame while the car is inside, and
-## writes straight to the car's HUD label.
+## it tracks one car at a time and prints every frame while the car is inside.
 
 ## Which way traffic should be moving through the sign: the collision shape's +Z
 ## axis. Speeds along it are negative when driving towards the sign as intended.
@@ -51,10 +51,14 @@ func _on_body_entered(body):
 
 
 func _on_body_exited(body):
-	if min_stop_sign_projected_speed < ENFORCEMENT_THRESHOLD:
+	var ran := min_stop_sign_projected_speed < ENFORCEMENT_THRESHOLD
+	if "ran_last_stop_sign" in body:
+		body.ran_last_stop_sign = ran
+	if ran:
 		print("=========== TRAFFIC VIOLATION !!! ===========")
 		print("Body min speed: " + str(min_stop_sign_projected_speed))
-		body.get_node("Hud/traffic_violation").text = "TRAFFIC VIOLATION!"
+		if body.has_method("record_violation"):
+			body.record_violation(&"stop_sign")
 
 	contained_body = null
 	min_stop_sign_projected_speed = 0.0

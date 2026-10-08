@@ -183,9 +183,9 @@ The validator reads them from there.)
 | Name | Kind | What it does | Status |
 |---|---|---|---|
 | `<<wait N>>` | command | N seconds of silence, no typing indicator | ✅ available (built in) |
-| `ran_stop_sign()` | function | true if the player ran the last stop sign | 🛠 planned (prototype) |
-| `violations()` | function | number of traffic violations this level | 🛠 planned (prototype) |
-| `<<start_thread Thread Node>>` | command | start another thread, e.g. a second contact texts in | 🛠 planned (prototype) |
+| `ran_stop_sign()` | function | true if the player ran the last stop sign | ✅ available |
+| `violations()` | function | number of traffic violations this level | ✅ available |
+| `<<start_thread Thread Node>>` | command | start another thread, e.g. a second contact texts in. For now the phone shows one conversation at a time, so it starts when the current one ends. | ✅ available |
 
 ---
 
@@ -253,3 +253,8 @@ While it plays:
 - The **log** shows each node as it starts, and commands like `<<start_thread>>` that the game would run.
 
 After editing a `.yarn` file, switch back to Godot (it recompiles automatically), then play again.
+
+**In the car:** to hear a conversation while driving, a level needs a `TextTrigger` naming its thread
+and first node (ask a programmer, or see `game/rules/text_trigger.gd`). It fires when the car drives
+through it or a set time after the level starts. On the test course, Mom's trigger is just after the
+stop sign.

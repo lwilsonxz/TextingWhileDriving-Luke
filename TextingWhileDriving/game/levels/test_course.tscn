@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://game/rules/stopSign.gd" id="3_fqrh7"]
 [ext_resource type="PackedScene" path="res://game/world/models/stop_sign_1.glb" id="4_64fbv"]
 [ext_resource type="PackedScene" path="res://game/car/Doge.tscn" id="5_ljksd"]
+[ext_resource type="Script" path="res://game/rules/text_trigger.gd" id="6_txtrg"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8igth"]
 
@@ -36,6 +37,9 @@ size = Vector3(12, 6, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_0uq57"]
 size = Vector3(12, 5, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_txtrg"]
+size = Vector3(12, 6, 2)
 
 [node name="TestCourse" type="Node3D" unique_id=2044301068]
 
@@ -99,6 +103,18 @@ shape = SubResource("BoxShape3D_0uq57")
 
 [node name="stop_sign_1" type="Node3D" parent="StopSign" unique_id=1315137638 instance=ExtResource("4_64fbv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 0, 1.5)
+
+[node name="MomTexts" type="Area3D" parent="."]
+editor_description = "Starts Mom's conversation just past the stop sign. Uses the writing template's sample conversation until writers add a real one to dialogue/."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 3, -114)
+monitorable = false
+script = ExtResource("6_txtrg")
+thread = "Mom"
+node = "Mom_L1_Start"
+yarn_project = "res://game/debug/dialogue_playtest/sample/Sample.yarnproject"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MomTexts"]
+shape = SubResource("BoxShape3D_txtrg")
 
 [node name="car" parent="." unique_id=227809654 instance=ExtResource("5_ljksd")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 0.5, -12)
