@@ -3,7 +3,8 @@ extends Node
 ## (in user://settings.cfg). Autoloaded as `Settings`.
 ##
 ## While playing: F6 switches the phone glance between toggle and hold,
-## F7 moves the phone to the next placement. A short note shows what changed.
+## F7 moves the phone to the next placement, F8 switches whether typing needs a
+## glance at the phone. A short note shows what changed.
 
 signal changed(setting: StringName)
 
@@ -13,6 +14,9 @@ const FILE := "user://settings.cfg"
 var phone_glance := 0
 ## Where the phone sits in the car (a key of PhoneMount.PLACEMENTS).
 var phone_placement := &"dash_mount"
+## true: the phone only takes keys and clicks while the driver looks at it.
+## false: type without looking (the hard part is then only the driving).
+var phone_typing_needs_glance := true
 
 var _note: Label
 var _note_time_left := 0.0
@@ -37,7 +41,14 @@ func set_phone_placement(placement: StringName) -> void:
 	changed.emit(&"phone_placement")
 
 
-# F6 / F7: cycle to the next option and show what it is now.
+## Changes whether typing needs a glance at the phone, and saves it.
+func set_phone_typing_needs_glance(needs_glance: bool) -> void:
+	phone_typing_needs_glance = needs_glance
+	_save()
+	changed.emit(&"phone_typing_needs_glance")
+
+
+# F6 / F7 / F8: cycle to the next option and show what it is now.
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_cycle_phone_glance"):
 		set_phone_glance((phone_glance + 1) % CarCamera.PhoneGlance.size())
@@ -47,6 +58,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		var next: int = (names.find(phone_placement) + 1) % names.size()
 		set_phone_placement(names[next])
 		show_note("Phone placement: %s (%d of %d)" % [String(phone_placement).replace("_", " "), next + 1, names.size()])
+	elif event.is_action_pressed("debug_toggle_phone_typing_glance"):
+		set_phone_typing_needs_glance(not phone_typing_needs_glance)
+		show_note("Typing: %s" % ("only while looking at the phone" if phone_typing_needs_glance else "works without looking"))
 
 
 ## Shows a short message at the top of the screen for a couple of seconds.
@@ -73,6 +87,7 @@ func _load() -> void:
 	var placement := StringName(file.get_value("phone", "placement", phone_placement))
 	if PhoneMount.PLACEMENTS.has(placement):
 		phone_placement = placement
+	phone_typing_needs_glance = file.get_value("phone", "typing_needs_glance", phone_typing_needs_glance)
 
 
 # Writes the settings to user://settings.cfg (in Godot's per-user data folder).
@@ -80,6 +95,7 @@ func _save() -> void:
 	var file := ConfigFile.new()
 	file.set_value("phone", "glance", phone_glance)
 	file.set_value("phone", "placement", String(phone_placement))
+	file.set_value("phone", "typing_needs_glance", phone_typing_needs_glance)
 	file.save(FILE)
 
 

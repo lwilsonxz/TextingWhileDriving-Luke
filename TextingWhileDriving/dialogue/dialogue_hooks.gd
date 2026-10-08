@@ -12,9 +12,12 @@ extends RefCounted
 ## writes the hooks into Dialogue.ysls.json (writers' VS Code autocomplete)
 ## for scripts inside the Yarn project's folder.
 ##
-## The bodies are placeholders until the prototype's PhoneService (roadmap A5)
-## and traffic rules (B3) exist. The playtest scene fakes functions through
-## `fakes` and shows commands through `command_listener`.
+## In the game, functions read the player's car (its driving record) and
+## commands go to PhoneService. The playtest scene fakes functions through
+## `fakes` and shows commands through `command_listener` instead.
+##
+## The game is looked up at run time (not by autoload name) because the
+## dialogue validator loads this file outside the game.
 
 ## Function name (without the prefix) -> value to return instead of asking the game.
 static var fakes := {}
@@ -26,24 +29,39 @@ static var command_listener := Callable()
 static func _yarn_function_ran_stop_sign() -> bool:
 	if fakes.has("ran_stop_sign"):
 		return fakes.ran_stop_sign
-	push_warning("DialogueHooks.ran_stop_sign() is not implemented yet")
-	return false
+	var car := _game_node("player_car")
+	return car != null and car.ran_last_stop_sign
 
 
 ## Number of traffic violations so far this level.
 static func _yarn_function_violations() -> int:
 	if fakes.has("violations"):
 		return fakes.violations
-	push_warning("DialogueHooks.violations() is not implemented yet")
-	return 0
+	var car := _game_node("player_car")
+	return car.violations.size() if car != null else 0
 
 
 ## <<start_thread Thread Node>>: start another conversation, e.g. a second contact texts in.
+## It plays after the current conversation ends.
 static func _yarn_command_start_thread(thread: String, node: String) -> void:
 	if command_listener.is_valid():
 		command_listener.call("start_thread", [thread, node])
 		return
-	push_warning("DialogueHooks <<start_thread %s %s>> is not implemented yet" % [thread, node])
+	var service := _game_node("PhoneService")
+	if service == null:
+		push_warning("<<start_thread %s %s>>: no PhoneService running" % [thread, node])
+		return
+	service.start_thread(thread, node)
+
+
+# Finds a part of the running game: an autoload by name ("PhoneService"), or
+# else the first node in that group ("player_car"). null outside the game.
+static func _game_node(name: String) -> Node:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or tree.root == null:
+		return null
+	var autoload := tree.root.get_node_or_null(name)
+	return autoload if autoload != null else tree.get_first_node_in_group(name)
 
 
 ## The game's functions, for tools: [{name, type}] where type is a Variant.Type.

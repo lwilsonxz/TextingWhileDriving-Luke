@@ -46,9 +46,24 @@ const STOPPED_SPEED := 1.0
 ## Courses, traffic rules and triggers recognise the player's car by this group.
 const GROUP := &"player_car"
 
+# The car's driving record for this level, read by conversations through
+# DialogueHooks (ran_stop_sign(), violations()). Roadmap B3 moves this into a
+# per-level LevelState when there are more traffic rules.
+
+## Every traffic rule broken so far, in order (e.g. [&"stop_sign"]).
+var violations: Array[StringName] = []
+## Whether the car ran the last stop sign it drove through.
+var ran_last_stop_sign := false
+
 
 func _ready() -> void:
 	add_to_group(GROUP)
+
+
+## Traffic rules call this when the car breaks them. Shows a warning on the HUD.
+func record_violation(rule: StringName) -> void:
+	violations.append(rule)
+	$Hud/traffic_violation.text = "TRAFFIC VIOLATION!"
 
 
 # F5 (debug): stop responding to the driving controls, e.g. to test typing alone.

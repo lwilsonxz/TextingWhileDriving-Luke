@@ -180,6 +180,9 @@ Fixed along the way:
   script that errors before `quit()` hangs.
 
 ### A5. Runtime integration layer (3–5 days, overlaps with B2)
+> **Started in B2:** `PhoneService` (start/queue threads, shared story variables, `prepare()` at level
+> start) and the game hooks now read the real car. Per-contact `PhoneThread`s and save/load remain.
+
 - `PhoneService` autoload: owns all threads, the shared story variables, and save/load
 - `PhoneThread`: one per contact. It wraps a dialogue runner, stores message history, and emits
   `message_received`, `options_presented`, `typing_required`, `thread_finished`
@@ -280,18 +283,39 @@ a win state, and at least one story variable that carries into a second short dr
   the phone, and that the keys and saving work.
 - The car's tuning values are all exports on `BaseCar.gd`, with a comment on what they produce.
 
-### B2. Phone core (5–8 days)
-- Pick a default phone placement and glance mode after playtesting the F6/F7 options (B1)
-- Put `ChatView` (built in A4) on the phone's SubViewport instead of the old typing test
-- Phone UI in the existing SubViewport-on-quad: message bubbles, scrolling history, typing
-  indicator, option buttons
-- **Typing challenge:** show the target `Me:` text greyed out, fill it in as the player types
-  (`InputEventKey.unicode`), handle backspace and mistakes, then "send". Start with **exact match**.
-  Put the comparison behind one function (`TypingRule.check(target, typed)`) so typo-tolerance
-  variants (ignore case/punctuation, allow N typos, typos get sent) can be swapped in for playtests.
-- Mouse: tap options and the send button on the phone screen (the SubViewport needs mouse input
-  forwarded from the 3D quad)
-- Hook up to `PhoneService` (A5). Until A5 lands, drive it from a hard-coded test conversation.
+### B2. Phone core: conversations play in the car ✅ mostly done
+- **The in-car phone runs real conversations.** `ChatView` (A4) is on the phone's screen, replacing
+  the 2024 typing test. It's drawn at 2× for sharp text and unshaded so it's readable in any light.
+- **Input from the 3D phone:** keys go to the screen for typing, and mouse clicks are traced onto the
+  quad, so choices can be clicked on the phone in the car. By default this only works while looking
+  at the phone. **F8** switches that (a new playtest option): "typing needs a glance" vs "type without
+  looking".
+- **Typing challenge:** exact match with live red typos, as in the playtest scene (`TypingRule` keeps
+  the comparison swappable for typo-tolerance experiments).
+- **`PhoneService` autoload (the first part of A5):**
+  - `start_thread(thread, node)` plays a conversation, or queues it while another plays.
+  - The story variables are shared by every conversation and kept between levels.
+  - `prepare()` loads Yarn at level start, not mid-drive.
+- **`TextTrigger` (`game/rules/text_trigger.gd`):** starts a conversation when the car drives in, or N
+  seconds after the level starts. The test course has one just after the stop sign. It plays the
+  writing template's sample conversation until a real one exists in `dialogue/`.
+- **The driving reaches the dialogue:**
+  - The car records its violations, so `ran_stop_sign()` and `violations()` read the real drive.
+  - `<<start_thread>>` queues the next conversation on the phone.
+  - The writing guide's §8 now marks all three as available.
+- **Tests:** `test_phone.gd` (in CI) covers the whole path on the test course:
+  - drive through the trigger, then click a choice through the 3D phone and type the reply with a
+    typo and a fix;
+  - the "ran the stop sign" branch, after the reply deadline passes;
+  - the F8 option, the queue, and the level ending mid-conversation.
+- **Still to do:**
+  - Pick a default phone placement, glance mode and F8 option after playtesting (B1's F6/F7 plus F8).
+  - Readability: at the default 1152×648 window the phone's text is small. `PhoneMount.SCREEN_FILL`
+    (how much of the view the phone fills) is the knob to playtest.
+  - Gamepad-only replies (choices on the D-pad) if playtests want them; the hybrid controls decision
+    says mouse and keyboard work the phone.
+  - **Not yet done from A5:** a `PhoneThread` per contact with its own history (several threads live
+    at once), and saving story variables to disk.
 
 ### B3. The coupling: what makes it a game (4–6 days)
 - **Distraction:** while looking at the phone, the road view is reduced (camera, blur or vignette) and

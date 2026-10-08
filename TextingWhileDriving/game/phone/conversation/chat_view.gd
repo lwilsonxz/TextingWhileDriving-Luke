@@ -4,8 +4,8 @@ extends PanelContainer
 ## indicator, choice buttons, the reply countdown and the typing challenge.
 ##
 ## Knows nothing about Yarn; ChatPresenter drives it. Builds its own child
-## nodes, so it can be dropped into any scene (the playtest scene now, the
-## in-car phone later).
+## nodes, so it can be dropped into any scene (the playtest scene and the
+## in-car phone both use it).
 
 ## The player clicked a choice button (index into the list given to show_choices).
 signal choice_selected(index: int)
@@ -19,8 +19,9 @@ const BACKGROUND_COLOR := Color("ffffff")
 const TEXT_DARK := Color("111111")
 const TEXT_LIGHT := Color("ffffff")
 const MUTED := Color("8e8e93")
-## Longest a message bubble gets before the text wraps (pixels).
-const MAX_BUBBLE_WIDTH := 260
+## Longest a message bubble gets before the text wraps (pixels). Leaves room
+## for the margins on the in-car phone's 304-pixel-wide screen.
+const MAX_BUBBLE_WIDTH := 220
 
 # The child nodes, created in _build().
 var _header: Label
