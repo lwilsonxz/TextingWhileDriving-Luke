@@ -45,25 +45,27 @@ const STOPPED_SPEED := 1.0
 
 ## Courses, traffic rules and triggers recognise the player's car by this group.
 const GROUP := &"player_car"
+## Crash detection looks at how much speed the car lost over this many physics
+## ticks (0.05 s): hard braking loses about 0.5 km/h in that time, a crash far more.
+const CRASH_WINDOW_TICKS := 3
 
-# The car's driving record for this level, read by conversations through
-# DialogueHooks (ran_stop_sign(), violations()). Roadmap B3 moves this into a
-# per-level LevelState when there are more traffic rules.
+## The car hit something hard: it lost `impact_kmh` of speed in a moment.
+## The level's LevelState listens to this.
+signal crashed(impact_kmh: float)
 
-## Every traffic rule broken so far, in order (e.g. [&"stop_sign"]).
-var violations: Array[StringName] = []
-## Whether the car ran the last stop sign it drove through.
-var ran_last_stop_sign := false
+@export_group("Crashes")
+## Losing this much speed (km/h) within 0.05 s counts as a crash.
+@export var crash_threshold_kmh := 15.0
+## After a crash, ignore further impacts for this long (seconds): one crash, not ten.
+@export var crash_cooldown := 1.0
+
+# Horizontal speed (km/h) over the last few ticks, oldest first, for crash detection.
+var _recent_kmh: Array[float] = []
+var _crash_cooldown_left := 0.0
 
 
 func _ready() -> void:
 	add_to_group(GROUP)
-
-
-## Traffic rules call this when the car breaks them. Shows a warning on the HUD.
-func record_violation(rule: StringName) -> void:
-	violations.append(rule)
-	$Hud/traffic_violation.text = "TRAFFIC VIOLATION!"
 
 
 # F5 (debug): stop responding to the driving controls, e.g. to test typing alone.
@@ -75,6 +77,7 @@ func _input(event: InputEvent) -> void:
 # Runs every physics tick (60 times a second): read the controls, then set the
 # engine, brakes and steering for Godot's vehicle physics to apply.
 func _physics_process(delta: float) -> void:
+	_detect_crash(delta)
 	var speed := linear_velocity.length()
 	apply_central_force(Vector3.DOWN * downforce * speed)
 	$Hud/speed.text = "%d km/h" % roundi(speed * 3.6)  # m/s to km/h
@@ -133,3 +136,17 @@ func _drive_force(speed_in_direction: float, boost: float, limit_kmh: float) -> 
 func _set_rear_grip(grip: float) -> void:
 	$wheal2.wheel_friction_slip = grip
 	$wheal3.wheel_friction_slip = grip
+
+
+# A crash is a sudden loss of horizontal speed. Vertical speed is left out so
+# landing a jump or hitting a bump doesn't count.
+func _detect_crash(delta: float) -> void:
+	_crash_cooldown_left = maxf(_crash_cooldown_left - delta, 0.0)
+	var horizontal := Vector3(linear_velocity.x, 0.0, linear_velocity.z)
+	_recent_kmh.append(horizontal.length() * 3.6)
+	if _recent_kmh.size() > CRASH_WINDOW_TICKS + 1:
+		_recent_kmh.pop_front()
+	var lost: float = _recent_kmh.max() - _recent_kmh.back()
+	if lost > crash_threshold_kmh and _crash_cooldown_left == 0.0:
+		_crash_cooldown_left = crash_cooldown
+		crashed.emit(lost)

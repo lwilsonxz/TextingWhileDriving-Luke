@@ -36,9 +36,11 @@ told through the conversations on your phone. Built with Godot 4.6 (GDScript onl
 | Road / rear / left window view | D-pad ↑ / ↓ / ← | F3 / F1 / F2 |
 | Pick a reply on the phone | | click it (while looking at the phone) |
 | Type the reply / send / delete | | type / Enter / Backspace (while looking at the phone) |
+| Try again after failing a level | Start | R |
 | Quit | | Escape |
 
-On the test course, Mom texts just after the stop sign. For now that's the writing template's
+The test course has a stop sign, a 50 km/h zone on the far straight, and counts leaving the road.
+Three violations or a crash fails the level. Mom texts just after the stop sign. For now that's the writing template's
 placeholder conversation; it switches to a real one once writers add it to `dialogue/`.
 
 Playtest options (saved between sessions): **F6** switches the phone glance between toggle and hold,
@@ -56,7 +58,7 @@ TextingWhileDriving/          the Godot project
     ├── debug/                developer tools, e.g. the dialogue playtest scene
     ├── levels/               playable scenes (test_course.tscn; main.tscn is the ramps sandbox)
     ├── phone/                the in-car phone and its conversation UI
-    ├── rules/                traffic rules (stop signs, ...), the course, conversation triggers
+    ├── rules/                traffic rules, the level's record (LevelState), the course, conversation triggers
     ├── ui/                   menus and screens
     └── world/                roads, signs and other level pieces
 tools/                        command-line tools and their tests
@@ -85,6 +87,9 @@ godot --headless --path TextingWhileDriving --script res://../tools/tests/test_c
 
 # The phone in the car: a level starts a conversation, tap and type while driving
 godot --headless --path TextingWhileDriving --script res://../tools/tests/test_phone.gd
+
+# Traffic rules, crashes, failing and restarting a level
+godot --headless --path TextingWhileDriving --script res://../tools/tests/test_rules.gd
 
 # Validator tests
 godot --headless --script tools/tests/test_dialogue_validator.gd

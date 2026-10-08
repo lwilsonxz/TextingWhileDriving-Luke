@@ -7,12 +7,12 @@
       "Language": "gdscript",
       "Location": {
         "end": {
-          "character": 13,
-          "line": 29
+          "character": 56,
+          "line": 32
         },
         "start": {
           "character": 0,
-          "line": 25
+          "line": 28
         }
       },
       "Parameters": [],
@@ -26,17 +26,36 @@
       "Language": "gdscript",
       "Location": {
         "end": {
-          "character": 9,
-          "line": 37
+          "character": 55,
+          "line": 40
         },
         "start": {
           "character": 0,
-          "line": 33
+          "line": 36
         }
       },
       "Parameters": [],
       "ReturnType": "number",
       "YarnName": "violations"
+    },
+    {
+      "DefinitionName": "_yarn_function_crashes",
+      "Documentation": "Number of times the player has crashed this level.",
+      "FileName": "dialogue_hooks.gd",
+      "Language": "gdscript",
+      "Location": {
+        "end": {
+          "character": 45,
+          "line": 48
+        },
+        "start": {
+          "character": 0,
+          "line": 44
+        }
+      },
+      "Parameters": [],
+      "ReturnType": "number",
+      "YarnName": "crashes"
     }
   ],
   "commands": [
@@ -69,17 +88,17 @@
     {
       "async": false,
       "definitionName": "_yarn_command_start_thread",
-      "documentation": "<<start_thread Thread Node>>: start another conversation, e.g. a second contact texts in.",
+      "documentation": "<<start_thread Thread Node>>: start another conversation, e.g. a second contact texts in.\nIt plays after the current conversation ends.",
       "fileName": "dialogue_hooks.gd",
       "language": "gdscript",
       "location": {
         "end": {
-          "character": 93,
-          "line": 45
+          "character": 35,
+          "line": 61
         },
         "start": {
           "character": 0,
-          "line": 41
+          "line": 53
         }
       },
       "parameters": [
@@ -95,6 +114,56 @@
         }
       ],
       "yarnName": "start_thread"
+    },
+    {
+      "async": false,
+      "definitionName": "_yarn_command_fail_level",
+      "documentation": "<<fail_level \"Reason\">>: the level is failed, e.g. the player said something unforgivable.\nThe reason is shown on the failed screen.",
+      "fileName": "dialogue_hooks.gd",
+      "language": "gdscript",
+      "location": {
+        "end": {
+          "character": 19,
+          "line": 74
+        },
+        "start": {
+          "character": 0,
+          "line": 66
+        }
+      },
+      "parameters": [
+        {
+          "isParamsArray": false,
+          "name": "reason",
+          "type": "string"
+        }
+      ],
+      "yarnName": "fail_level"
+    },
+    {
+      "async": false,
+      "definitionName": "_yarn_command_level_event",
+      "documentation": "<<level_event name>>: tell the level something happened in the story, e.g. <<level_event mom_calls_police>>.\nWhat it does depends on the level (a programmer hooks it up).",
+      "fileName": "dialogue_hooks.gd",
+      "language": "gdscript",
+      "location": {
+        "end": {
+          "character": 29,
+          "line": 87
+        },
+        "start": {
+          "character": 0,
+          "line": 79
+        }
+      },
+      "parameters": [
+        {
+          "isParamsArray": false,
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "yarnName": "level_event"
     }
   ],
   "version": 2

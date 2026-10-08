@@ -185,7 +185,10 @@ The validator reads them from there.)
 | `<<wait N>>` | command | N seconds of silence, no typing indicator | ✅ available (built in) |
 | `ran_stop_sign()` | function | true if the player ran the last stop sign | ✅ available |
 | `violations()` | function | number of traffic violations this level | ✅ available |
+| `crashes()` | function | number of times the player crashed this level | ✅ available |
 | `<<start_thread Thread Node>>` | command | start another thread, e.g. a second contact texts in. For now the phone shows one conversation at a time, so it starts when the current one ends. | ✅ available |
+| `<<fail_level "Reason">>` | command | the player fails the level; the reason is shown on the failed screen | ✅ available |
+| `<<level_event name>>` | command | tell the level something happened in the story, e.g. `<<level_event mom_calls_police>>`. Ask a programmer to hook up what it does in the level. | ✅ available |
 
 ---
 

@@ -2,10 +2,13 @@
 
 [ext_resource type="MeshLibrary" path="res://game/world/models/roads-v4.tres" id="1_44vxt"]
 [ext_resource type="Script" path="res://game/rules/course.gd" id="2_i1mqd"]
-[ext_resource type="Script" path="res://game/rules/stopSign.gd" id="3_fqrh7"]
+[ext_resource type="Script" path="res://game/rules/stop_sign.gd" id="3_fqrh7"]
 [ext_resource type="PackedScene" path="res://game/world/models/stop_sign_1.glb" id="4_64fbv"]
 [ext_resource type="PackedScene" path="res://game/car/Doge.tscn" id="5_ljksd"]
 [ext_resource type="Script" path="res://game/rules/text_trigger.gd" id="6_txtrg"]
+[ext_resource type="Script" path="res://game/rules/level_state.gd" id="7_lvlst"]
+[ext_resource type="Script" path="res://game/rules/speed_zone.gd" id="8_speed"]
+[ext_resource type="Script" path="res://game/rules/off_road.gd" id="9_offrd"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8igth"]
 
@@ -40,6 +43,9 @@ size = Vector3(12, 5, 2)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_txtrg"]
 size = Vector3(12, 6, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_speed"]
+size = Vector3(12, 6, 60)
 
 [node name="TestCourse" type="Node3D" unique_id=2044301068]
 
@@ -91,6 +97,25 @@ monitorable = false
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Course/Finish" unique_id=311836310]
 shape = SubResource("BoxShape3D_c7070")
 
+[node name="LevelState" type="Node" parent="."]
+script = ExtResource("7_lvlst")
+max_violations = 3
+fail_on_crash = true
+
+[node name="OffRoad" type="Area3D" parent="." node_paths=PackedStringArray("roads")]
+monitorable = false
+script = ExtResource("9_offrd")
+roads = NodePath("../Roads")
+
+[node name="SpeedZone50" type="Area3D" parent="."]
+editor_description = "50 km/h on the middle of the east straight (between checkpoints 1 and 3)."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 102, 3, -90)
+monitorable = false
+script = ExtResource("8_speed")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SpeedZone50"]
+shape = SubResource("BoxShape3D_speed")
+
 [node name="StopSign" type="Area3D" parent="." unique_id=1556182520]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -90)
 collision_layer = 2
@@ -119,5 +144,3 @@ shape = SubResource("BoxShape3D_txtrg")
 [node name="car" parent="." unique_id=227809654 instance=ExtResource("5_ljksd")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 0.5, -12)
 
-[connection signal="body_entered" from="StopSign" to="StopSign" method="_on_body_entered"]
-[connection signal="body_exited" from="StopSign" to="StopSign" method="_on_body_exited"]

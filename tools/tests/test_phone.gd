@@ -82,10 +82,10 @@ func _test_conversation_reads_driving() -> void:
 	print("== Ignoring Mom after running the stop sign: the conversation knows ==")
 	await _load_level()
 	await _drive_into_trigger()
-	_check(car.violations == [&"stop_sign"], "running the stop sign is recorded on the car (got %s)" % [car.violations])
-	_check(DialogueHooks._yarn_function_ran_stop_sign() and DialogueHooks._yarn_function_violations() == 1,
-		"ran_stop_sign() and violations() read the car")
-	await _wait_until(func(): return phone.view.choice_texts().size() > 0)
+	var state: LevelState = level.get_node("LevelState")
+	_check(state.violation_count(&"stop_sign") == 1, "running the stop sign is recorded (got %s)" % [state.violations])
+	_check(DialogueHooks._yarn_function_ran_stop_sign() and DialogueHooks._yarn_function_violations() == state.violations.size(),
+		"ran_stop_sign() and violations() read the level's record")
 	# Park the car and let the 15 s reply deadline pass quickly.
 	car.freeze = true
 	Engine.time_scale = 30.0
@@ -176,7 +176,7 @@ func _unload_level() -> void:
 
 
 # Full throttle from the start: through the stop sign (~80 km/h, a violation)
-# and into the trigger just past it.
+# and into the trigger just past it, then brake to a stop.
 func _drive_into_trigger() -> void:
 	var trigger: TextTrigger = level.get_node("MomTexts")
 	Input.action_press("drive_accelerate")
@@ -186,6 +186,13 @@ func _drive_into_trigger() -> void:
 		ticks += 1
 	Input.action_release("drive_accelerate")
 	_check(trigger.has_fired, "the car reached the trigger (%.1f s)" % (ticks / 60.0))
+	# Brake to a stop before the end of the straight (driving off it is a crash).
+	Input.action_press("drive_reverse")
+	var braking := 0
+	while car.linear_velocity.length() > 1.0 and braking < 60 * 6:
+		braking += 1
+		await physics_frame
+	Input.action_release("drive_reverse")
 
 
 # Clicks the middle of choice button `index` on the phone, with the real mouse
