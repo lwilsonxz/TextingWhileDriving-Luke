@@ -261,7 +261,7 @@ a win state, and at least one story variable that carries into a second short dr
   that drops in the car gets the same car.
 - **Camera (`CarCamera`):** named views (road, rear, left window, phone) that glide at any frame rate.
   The phone button works as **toggle** or **hold** (`phone_glance` export, both ready to playtest).
-  `is_looking_at_phone()` and `view_changed` are there for B3's distraction mechanics.
+  `is_looking_at_phone()` and `view_changed` let other systems react to where the driver looks.
 - **Fixed:** the level instanced the phone twice. A render confirmed which copy was the visible one.
 - **Test course (`game/levels/test_course.tscn`, now the main scene):** a ~530 m loop from the road
   kit, with a stop sign, 3 ordered checkpoints, a finish line just behind the start, and a timer/HUD
@@ -317,8 +317,12 @@ a win state, and at least one story variable that carries into a second short dr
   - **Not yet done from A5:** a `PhoneThread` per contact with its own history (several threads live
     at once), and saving story variables to disk.
 
-### B3. The coupling: what makes it a game (in progress)
-**Done (part 1: rules and consequences):**
+### B3. The coupling: what makes it a game ✅ done (red lights wait for a model)
+**No artificial distraction.** The original plan reduced the road view and dampened steering while
+looking at the phone. That's dropped (see the "Texting and driving" decision): the player has full
+control of both at all times, and the danger comes from where they choose to look.
+
+**Done:**
 - **`LevelState` (one per level):** records traffic violations and crashes, shows warnings
   ("TRAFFIC VIOLATION: Ran a stop sign", "CRASH!"), and fails the level:
   - after `max_violations`;
@@ -341,8 +345,6 @@ a win state, and at least one story variable that carries into a second short dr
   rule, into a wall, and through the fail and restart.
 
 **Still to do:**
-- **Distraction (part 2):** while looking at the phone, the road view is reduced (blur or vignette)
-  and steering may be dampened. These will be playtest options like F6–F8.
 - **Red lights:** need a traffic light model; the rule itself is a small `TrafficRule`.
 - **Unanswered messages:** reply timeouts already work (`#timeout`); what ignoring someone costs is
   for writers (the timeout branch) plus `<<fail_level>>` where it should end the level.
@@ -473,6 +475,7 @@ The open questions for this roadmap are 2–4 in [Open questions](#open-question
 | Platform | Windows only | If other platforms become worth it |
 | Branches | Descriptive names (e.g. `roadmap-doc`), merged to `main` by PR within the fork | — |
 | World while phone is up | **Keeps moving.** Texting while the car is moving is the core challenge and the core marketing hook. | — |
+| Texting and driving | **Full control of both at all times.** No "text mode" and "drive mode", and no artificial penalties for looking at the phone (no blur, no dampened steering). The challenge is emergent: switching attention between the road and the phone, like the real dangerous behaviour. | — |
 | Hard-to-type characters | **Allowed** (emoji, unusual punctuation, etc.) as part of a difficulty curve where both texting and driving get harder in later levels | — |
 
 ## Open questions

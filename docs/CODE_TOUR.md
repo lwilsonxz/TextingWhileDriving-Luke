@@ -23,8 +23,8 @@ Doge.tscn  (the car you drive; BaseCar.tscn plus the Doge model)
   `@export` at the top, with a comment on what it does; the defaults give realistic car numbers.
   At the bottom, `_detect_crash` emits `crashed` when the car loses a lot of speed in a moment.
 - **`game/car/Camera3D.gd` (`CarCamera`):** views are position + rotation (+ zoom) pairs the camera
-  glides between. `is_looking_at_phone()` and `view_changed` are what later distraction mechanics
-  will use.
+  glides between. `is_looking_at_phone()` and `view_changed` let other systems react to
+  where the driver looks (looking away never takes control away).
 - **`game/car/phone_mount.gd`:** the five phone placements (F7 cycles them).
 - **`game/phone/phone.gd`:** the phone in the car. Its screen is a `ChatView` in a SubViewport, shown as
   the texture of a quad. A SubViewport on a quad gets no input by itself, so `_input` passes keys on
