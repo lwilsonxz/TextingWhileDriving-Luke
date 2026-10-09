@@ -261,7 +261,7 @@ a win state, and at least one story variable that carries into a second short dr
   that drops in the car gets the same car.
 - **Camera (`CarCamera`):** named views (road, rear, left window, phone) that glide at any frame rate.
   The phone button works as **toggle** or **hold** (`phone_glance` export, both ready to playtest).
-  `is_looking_at_phone()` and `view_changed` are there for B3's distraction mechanics.
+  `is_looking_at_phone()` and `view_changed` let other systems react to where the driver looks.
 - **Fixed:** the level instanced the phone twice. A render confirmed which copy was the visible one.
 - **Test course (`game/levels/test_course.tscn`, now the main scene):** a ~530 m loop from the road
   kit, with a stop sign, 3 ordered checkpoints, a finish line just behind the start, and a timer/HUD
@@ -287,9 +287,9 @@ a win state, and at least one story variable that carries into a second short dr
 - **The in-car phone runs real conversations.** `ChatView` (A4) is on the phone's screen, replacing
   the 2024 typing test. It's drawn at 2× for sharp text and unshaded so it's readable in any light.
 - **Input from the 3D phone:** keys go to the screen for typing, and mouse clicks are traced onto the
-  quad, so choices can be clicked on the phone in the car. By default this only works while looking
-  at the phone. **F8** switches that (a new playtest option): "typing needs a glance" vs "type without
-  looking".
+  quad, so choices can be clicked on the phone in the car. This works at all times, looking at the
+  phone or not (the "Texting and driving" decision). **F8** switches to "only while looking" as a
+  playtest variant.
 - **Typing challenge:** exact match with live red typos, as in the playtest scene (`TypingRule` keeps
   the comparison swappable for typo-tolerance experiments).
 - **`PhoneService` autoload (the first part of A5):**
@@ -317,15 +317,41 @@ a win state, and at least one story variable that carries into a second short dr
   - **Not yet done from A5:** a `PhoneThread` per contact with its own history (several threads live
     at once), and saving story variables to disk.
 
-### B3. The coupling: what makes it a game (4–6 days)
-- **Distraction:** while looking at the phone, the road view is reduced (camera, blur or vignette) and
-  steering input may be dampened
-- **Traffic rules:** generalise `stopSign.gd` into a `TrafficRule` base (stop sign, red light, speeding,
-  leaving the road) emitting violations to a `LevelState`
-- **Texting pressure:** reply timeouts (`#timeout`) and unanswered-message consequences
-- **Story ↔ gameplay:** violations and crashes are readable by dialogue functions; dialogue commands
-  can trigger level events
-- Fail conditions: N violations, a crash, or a story fail from a dialogue command
+### B3. The coupling: what makes it a game ✅ done (red lights wait for a model)
+**No artificial distraction.** The original plan reduced the road view and dampened steering while
+looking at the phone. That's dropped (see the "Texting and driving" decision): the player has full
+control of both at all times, and the danger comes from where they choose to look.
+
+**Done:**
+- **`LevelState` (one per level):** records traffic violations and crashes, shows warnings
+  ("TRAFFIC VIOLATION: Ran a stop sign", "CRASH!"), and fails the level:
+  - after `max_violations`;
+  - on a crash (`fail_on_crash`);
+  - or when a conversation says so (`<<fail_level "reason">>`).
+  The failed screen offers R / Start to try again. It replaces the car's old "TRAFFIC VIOLATION!" label.
+- **`TrafficRule` base:** a zone that knows when the player's car is inside and reports `broken()` or
+  `obeyed()`. Rules built on it:
+  - **`StopSign`:** replaces `stopSign.gd` and fixes its limits (per-frame printing, wiring signals by
+    hand, the direction TODO). It ignores traffic going the other way.
+  - **`SpeedZone`:** one violation per visit over the limit (+5 km/h tolerance).
+  - **`OffRoadRule`:** more than a second off the GridMap's road tiles.
+- **Crashes:** the car emits `crashed(impact_kmh)` when it loses more than 15 km/h within 0.05 s.
+  Landings and bumps don't count; only horizontal speed is used.
+- **Dialogue:** `violations()`, `ran_stop_sign()` and the new `crashes()` read the `LevelState`. New
+  commands `<<fail_level "reason">>` and `<<level_event name>>` (a signal levels can hook up).
+- **Test course:** a 50 km/h zone on the east straight, the off-road rule, and failing on 3
+  violations or a crash.
+- **Tests:** `test_rules.gd` (in CI) builds small scenes on the flat ground and drives through each
+  rule, into a wall, and through the fail and restart.
+
+**Still to do:**
+- **Red lights:** need a traffic light model; the rule itself is a small `TrafficRule`.
+- **Unanswered messages:** reply timeouts already work (`#timeout`); what ignoring someone costs is
+  for writers (the timeout branch) plus `<<fail_level>>` where it should end the level.
+- Hook a `<<level_event>>` to something in a level once a conversation needs one.
+- **Found while testing:** at full throttle with no steering, the car drifts right (about 6 m over
+  the first 150 m of the test course) and leaves the road. Worth a look in playtests: it may be the
+  car's setup, or fine as "you have to steer".
 
 ### B4. Level flow (2–4 days)
 - Level start → triggers (time/position) start threads → finish line → results screen (violations,
@@ -351,15 +377,16 @@ knowing the code. It starts minimal and grows as levels need more.
   turn, T-junction, crossroads, two ramps, and `CarRef`, a car-sized marker for scale. Tiles are 12 m
   square. Roads are painted tile by tile with Godot's GridMap editor.
 - **Pieces with behaviour:**
-  - Stop sign (`rules/stopSign.gd`): a trigger area plus a model, wired up by hand in each level.
+  - Traffic rules (`rules/stop_sign.gd`, `speed_zone.gd`, `off_road.gd`, B3) and `LevelState`. A stop sign
+    is still a zone, a collision shape and a model put together by hand in each level.
   - `Course` (B1): checkpoints, finish line, timer.
 - **Two levels:** the ramps sandbox (`levels/main.tscn`, painted by hand) and the test course (B1).
   The test course came from a throwaway script that wrote the GridMap cells.
 - **What's painful:**
   - Picking the right rotation for each turn tile. The rotations are numbers (0, 10, 16, 22), and
     working them out for the test course took trial renders.
-  - Adding a stop sign or checkpoint means building an Area3D, a collision shape and a model, then
-    connecting signals.
+  - Adding a stop sign or checkpoint means building an Area3D, a collision shape and a model by
+    hand (rules no longer need their signals connected).
   - Nothing tells you a level is broken (checkpoint off the road, car spawning in a wall, stop sign
     facing the wrong way) until you drive it.
   - The road kit's source file (Blender?) isn't in the repo, only the exported `.glb`.
@@ -448,6 +475,7 @@ The open questions for this roadmap are 2–4 in [Open questions](#open-question
 | Platform | Windows only | If other platforms become worth it |
 | Branches | Descriptive names (e.g. `roadmap-doc`), merged to `main` by PR within the fork | — |
 | World while phone is up | **Keeps moving.** Texting while the car is moving is the core challenge and the core marketing hook. | — |
+| Texting and driving | **Full control of both at all times.** No "text mode" and "drive mode", and no artificial penalties for looking at the phone (no blur, no dampened steering). The challenge is emergent: switching attention between the road and the phone, like the real dangerous behaviour. | — |
 | Hard-to-type characters | **Allowed** (emoji, unusual punctuation, etc.) as part of a difficulty curve where both texting and driving get harder in later levels | — |
 
 ## Open questions

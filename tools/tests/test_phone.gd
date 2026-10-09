@@ -1,7 +1,7 @@
 extends SceneTree
 ## Tests the phone in the car on the test course: a TextTrigger starts a
 ## conversation, the player taps a choice with the mouse and types the reply
-## while looking at the phone, and the conversation reacts to the driving
+## while driving, and the conversation reacts to the driving
 ## (running the stop sign). Also PhoneService's queue and a level ending
 ## mid-conversation.
 ##
@@ -26,10 +26,10 @@ func _initialize() -> void:
 	service = root.get_node("PhoneService")
 	settings = root.get_node("Settings")
 	# Use the default playtest options, and put the player's own back at the end.
-	var saved := [settings.phone_glance, settings.phone_placement, settings.phone_typing_needs_glance]
+	var saved := [settings.phone_glance, settings.phone_placement, settings.phone_type_without_looking]
 	settings.set_phone_glance(CarCamera.PhoneGlance.TOGGLE)
 	settings.set_phone_placement(&"dash_mount")
-	settings.set_phone_typing_needs_glance(true)
+	settings.set_phone_type_without_looking(true)
 	service.delay_scale = 0.0  # messages arrive at once (delays are tested in test_dialogue_playtest)
 
 	await _test_trigger_tap_and_type()
@@ -40,7 +40,7 @@ func _initialize() -> void:
 
 	settings.set_phone_glance(saved[0])
 	settings.set_phone_placement(saved[1])
-	settings.set_phone_typing_needs_glance(saved[2])
+	settings.set_phone_type_without_looking(saved[2])
 	print("")
 	print("ALL TESTS PASSED" if _failures == 0 else "%d TEST(S) FAILED" % _failures)
 	await _unload_level()
@@ -58,12 +58,10 @@ func _test_trigger_tap_and_type() -> void:
 		"Mom's messages arrive on the phone (got %s)" % [phone.view.transcript()])
 	_check(phone.view.choice_texts().size() == 3, "3 choices: the hidden timeout choice isn't shown in the game (got %s)" % [phone.view.choice_texts()])
 
-	await _click_choice(0)
-	_check(not phone.view.is_typing(), "clicking the phone while looking at the road does nothing")
 	camera.snap_to(CarCamera.PHONE)
 	await _frames(2)
 	await _click_choice(0)
-	_check(phone.view.is_typing(), "clicking a choice while looking at the phone picks it")
+	_check(phone.view.is_typing(), "clicking a choice on the phone picks it")
 	_type("placeholder text the player typeX")
 	_press(KEY_ENTER)
 	await _frames(2)
@@ -82,10 +80,10 @@ func _test_conversation_reads_driving() -> void:
 	print("== Ignoring Mom after running the stop sign: the conversation knows ==")
 	await _load_level()
 	await _drive_into_trigger()
-	_check(car.violations == [&"stop_sign"], "running the stop sign is recorded on the car (got %s)" % [car.violations])
-	_check(DialogueHooks._yarn_function_ran_stop_sign() and DialogueHooks._yarn_function_violations() == 1,
-		"ran_stop_sign() and violations() read the car")
-	await _wait_until(func(): return phone.view.choice_texts().size() > 0)
+	var state: LevelState = level.get_node("LevelState")
+	_check(state.violation_count(&"stop_sign") == 1, "running the stop sign is recorded (got %s)" % [state.violations])
+	_check(DialogueHooks._yarn_function_ran_stop_sign() and DialogueHooks._yarn_function_violations() == state.violations.size(),
+		"ran_stop_sign() and violations() read the level's record")
 	# Park the car and let the 15 s reply deadline pass quickly.
 	car.freeze = true
 	Engine.time_scale = 30.0
@@ -99,21 +97,30 @@ func _test_conversation_reads_driving() -> void:
 
 
 func _test_typing_without_looking_option() -> void:
-	print("== F8 option: typing without looking at the phone ==")
+	print("== Typing works without looking at the phone; F8 switches to 'only while looking' ==")
 	await _load_level()
 	service.start_thread("Mom", "Mom_L1_ReplyTwo", SAMPLE)
 	await _wait_until(func(): return phone.view.is_typing())
 	_type("placeholder forced reply")
 	_press(KEY_ENTER)
-	await _frames(2)
-	_check(phone.view.is_typing(), "keys don't reach the phone while looking at the road")
+	await _wait_until(func(): return not service.is_playing())
+	_check(phone.view.transcript().has("Me: placeholder forced reply"), "by default, typing works while looking at the road (got %s)" % [phone.view.transcript()])
+
 	await _tap("debug_toggle_phone_typing_glance")
-	_check(not settings.phone_typing_needs_glance, "F8 switches the option")
+	_check(not settings.phone_type_without_looking, "F8 switches the option")
+	service.start_thread("Mom", "Mom_L1_ReplyTwo", SAMPLE)
+	await _wait_until(func(): return phone.view.is_typing())
+	_type("placeholder forced reply")
+	_press(KEY_ENTER)
+	await _frames(2)
+	_check(phone.view.is_typing(), "with it on, keys don't reach the phone while looking at the road")
+	camera.snap_to(CarCamera.PHONE)
+	await _frames(2)
 	_type("placeholder forced reply")
 	_press(KEY_ENTER)
 	await _wait_until(func(): return not service.is_playing())
-	_check(phone.view.transcript().has("Me: placeholder forced reply"), "with it off, typing works without looking")
-	settings.set_phone_typing_needs_glance(true)
+	_check(not phone.view.is_typing(), "but do while looking at it")
+	settings.set_phone_type_without_looking(true)
 
 
 func _test_queue() -> void:
@@ -176,7 +183,7 @@ func _unload_level() -> void:
 
 
 # Full throttle from the start: through the stop sign (~80 km/h, a violation)
-# and into the trigger just past it.
+# and into the trigger just past it, then brake to a stop.
 func _drive_into_trigger() -> void:
 	var trigger: TextTrigger = level.get_node("MomTexts")
 	Input.action_press("drive_accelerate")
@@ -186,6 +193,13 @@ func _drive_into_trigger() -> void:
 		ticks += 1
 	Input.action_release("drive_accelerate")
 	_check(trigger.has_fired, "the car reached the trigger (%.1f s)" % (ticks / 60.0))
+	# Brake to a stop before the end of the straight (driving off it is a crash).
+	Input.action_press("drive_reverse")
+	var braking := 0
+	while car.linear_velocity.length() > 1.0 and braking < 60 * 6:
+		braking += 1
+		await physics_frame
+	Input.action_release("drive_reverse")
 
 
 # Clicks the middle of choice button `index` on the phone, with the real mouse

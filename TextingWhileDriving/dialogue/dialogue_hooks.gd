@@ -12,8 +12,8 @@ extends RefCounted
 ## writes the hooks into Dialogue.ysls.json (writers' VS Code autocomplete)
 ## for scripts inside the Yarn project's folder.
 ##
-## In the game, functions read the player's car (its driving record) and
-## commands go to PhoneService. The playtest scene fakes functions through
+## In the game, functions read the level's LevelState (its driving record) and
+## commands go to PhoneService or the LevelState. The playtest scene fakes functions through
 ## `fakes` and shows commands through `command_listener` instead.
 ##
 ## The game is looked up at run time (not by autoload name) because the
@@ -29,16 +29,24 @@ static var command_listener := Callable()
 static func _yarn_function_ran_stop_sign() -> bool:
 	if fakes.has("ran_stop_sign"):
 		return fakes.ran_stop_sign
-	var car := _game_node("player_car")
-	return car != null and car.ran_last_stop_sign
+	var level := _game_node("level_state")
+	return level != null and level.broke_last(&"stop_sign")
 
 
 ## Number of traffic violations so far this level.
 static func _yarn_function_violations() -> int:
 	if fakes.has("violations"):
 		return fakes.violations
-	var car := _game_node("player_car")
-	return car.violations.size() if car != null else 0
+	var level := _game_node("level_state")
+	return level.violation_count() if level != null else 0
+
+
+## Number of times the player has crashed this level.
+static func _yarn_function_crashes() -> int:
+	if fakes.has("crashes"):
+		return fakes.crashes
+	var level := _game_node("level_state")
+	return level.crashes if level != null else 0
 
 
 ## <<start_thread Thread Node>>: start another conversation, e.g. a second contact texts in.
@@ -54,8 +62,34 @@ static func _yarn_command_start_thread(thread: String, node: String) -> void:
 	service.start_thread(thread, node)
 
 
+## <<fail_level "Reason">>: the level is failed, e.g. the player said something unforgivable.
+## The reason is shown on the failed screen.
+static func _yarn_command_fail_level(reason: String) -> void:
+	if command_listener.is_valid():
+		command_listener.call("fail_level", [reason])
+		return
+	var level := _game_node("level_state")
+	if level == null:
+		push_warning("<<fail_level>>: this level has no LevelState")
+		return
+	level.fail(reason)
+
+
+## <<level_event name>>: tell the level something happened in the story, e.g. <<level_event mom_calls_police>>.
+## What it does depends on the level (a programmer hooks it up).
+static func _yarn_command_level_event(name: String) -> void:
+	if command_listener.is_valid():
+		command_listener.call("level_event", [name])
+		return
+	var level := _game_node("level_state")
+	if level == null:
+		push_warning("<<level_event %s>>: this level has no LevelState" % name)
+		return
+	level.level_event.emit(name)
+
+
 # Finds a part of the running game: an autoload by name ("PhoneService"), or
-# else the first node in that group ("player_car"). null outside the game.
+# else the first node in that group ("level_state"). null outside the game.
 static func _game_node(name: String) -> Node:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null or tree.root == null:

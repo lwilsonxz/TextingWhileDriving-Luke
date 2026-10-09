@@ -3,9 +3,11 @@ extends Camera3D
 ## The driver's camera. Each view is a position and rotation inside the car;
 ## the camera glides between them.
 ##
-## Looking at the phone is the core mechanic, so other systems (distraction,
-## traffic rules, the phone UI) can ask is_looking_at_phone() or listen to
-## view_changed instead of reading input themselves.
+## Where the driver looks is the core mechanic, so other systems (the phone UI,
+## later traffic or story events) can ask is_looking_at_phone() or listen to
+## view_changed instead of reading input themselves. Looking away never takes
+## control away: the car and the phone both work at all times (see the
+## "Texting and driving" decision in docs/ROADMAP.md).
 
 signal view_changed(view: StringName)
 

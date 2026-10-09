@@ -39,14 +39,21 @@ func _initialize() -> void:
 	level.queue_free()
 	await process_frame
 	await _load_level()
-	var label: Label = car.get_node("Hud/traffic_violation")
-	_check(label.text == "", "no violation at the start")
+	var state: LevelState = level.get_node("LevelState")
+	_check(state.violations.is_empty() and state.warning_text() == "", "no violation at the start")
+	# Full throttle until just past the stop sign (~80 m ahead; about 80 km/h by then). Not much
+	# further: without steering the car runs off the end of the straight and crashes.
+	var sign_z: float = level.get_node("StopSign").global_position.z
 	Input.action_press("drive_accelerate")
-	await _ticks(60 * 9)  # the stop sign is ~70 m ahead; about 80 km/h when we reach it
+	var ticks := 0
+	while car.global_position.z > sign_z - 10 and ticks < 60 * 12:
+		await physics_frame
+		ticks += 1
 	Input.action_release("drive_accelerate")
 	_check(car.global_position.z < level.get_node("StopSign").global_position.z - 5,
 		"the car drove past the stop sign (z %.0f)" % car.global_position.z)
-	_check(label.text == "TRAFFIC VIOLATION!", "running the stop sign at speed is a violation (label: \"%s\")" % label.text)
+	_check(state.violation_count(&"stop_sign") == 1 and state.warning_text() == "TRAFFIC VIOLATION: Ran a stop sign",
+		"running the stop sign at speed is a violation (warning: \"%s\")" % state.warning_text())
 
 	print("")
 	print("ALL TESTS PASSED" if _failures == 0 else "%d TEST(S) FAILED" % _failures)

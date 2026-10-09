@@ -9,8 +9,9 @@ extends Node3D
 ## A SubViewport drawn on a quad doesn't get any input by itself, so this
 ## script passes it on: key presses as they are (for typing), and mouse
 ## events moved to where the mouse points on the quad (for tapping choices).
-## By default this only happens while the driver is looking at the phone
-## (Settings.phone_typing_needs_glance, F8 in game).
+## This works whether or not the driver is looking at the phone: the player
+## controls the car and the phone at all times. F8 switches to "only while
+## looking" for playtests (Settings.phone_type_without_looking).
 
 ## Size of the screen's 2D layout in pixels (the quad's shape: 0.38 × 0.8 m).
 const SCREEN_SIZE := Vector2i(304, 640)
@@ -97,11 +98,11 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-# Whether the phone takes keys and clicks right now: while the driver looks at
-# it, or always if the playtest option says typing doesn't need a glance.
+# Whether the phone takes keys and clicks right now: always, unless the F8
+# playtest option says only while the driver looks at it.
 func _accepts_input() -> bool:
 	var settings := get_node_or_null("/root/Settings")
-	if settings != null and not settings.phone_typing_needs_glance:
+	if settings == null or settings.phone_type_without_looking:
 		return true
 	var camera := get_viewport().get_camera_3d() as CarCamera
 	return camera != null and camera.is_looking_at_phone()

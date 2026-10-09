@@ -1,9 +1,10 @@
-[gd_scene load_steps=20 format=3 uid="uid://buc0ehhwfqggq"]
+[gd_scene load_steps=21 format=3 uid="uid://buc0ehhwfqggq"]
 
 [ext_resource type="PackedScene" uid="uid://ci52bv1m15cbs" path="res://game/car/Doge.tscn" id="1_mdet3"]
 [ext_resource type="MeshLibrary" uid="uid://f8im3u8ew1gb" path="res://game/world/models/roads-v4.tres" id="3_7a0s8"]
-[ext_resource type="Script" path="res://game/rules/stopSign.gd" id="4_cmgoq"]
+[ext_resource type="Script" path="res://game/rules/stop_sign.gd" id="4_cmgoq"]
 [ext_resource type="PackedScene" uid="uid://r6rqcgo4n8hy" path="res://game/world/models/stop_sign_1.glb" id="5_7t7bd"]
+[ext_resource type="Script" path="res://game/rules/level_state.gd" id="6_lvlst"]
 [ext_resource type="Texture2D" uid="uid://cpwiyoo7664vj" path="res://game/world/textures/texture_10.png" id="6_tex10"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8igth"]
@@ -143,6 +144,9 @@ data = {
 }
 metadata/_editor_floor_ = Vector3(0, -1, 0)
 
+[node name="LevelState" type="Node" parent="."]
+script = ExtResource("6_lvlst")
+
 [node name="stopSign" type="Area3D" parent="."]
 collision_layer = 2
 collision_mask = 2
@@ -155,5 +159,3 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -50)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -51.3419)
 shape = SubResource("BoxShape3D_lf72t")
 
-[connection signal="body_entered" from="stopSign" to="stopSign" method="_on_body_entered"]
-[connection signal="body_exited" from="stopSign" to="stopSign" method="_on_body_exited"]

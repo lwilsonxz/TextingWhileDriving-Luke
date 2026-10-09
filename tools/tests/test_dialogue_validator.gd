@@ -105,7 +105,9 @@ func _test_autocomplete_definitions_are_current(validator, repo_root: String, ho
 	for name in validator._commands:
 		_check(name in commands, "command <<%s>> is in Dialogue.ysls.json" % name)
 	if _failures > 0:
-		print("    Regenerate it: open the project in Godot (or run godot --headless --path TextingWhileDriving --import) and commit the file.")
+		print("    Regenerate it: in Godot, right-click dialogue/Dialogue.yarnproject > Reimport (or delete")
+		print("    TextingWhileDriving/.godot/imported/Dialogue.yarnproject-* and run godot --headless")
+		print("    --path TextingWhileDriving --import), then commit the file.")
 
 
 func _test_typing_tiers(validator) -> void:
