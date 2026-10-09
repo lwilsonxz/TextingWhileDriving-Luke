@@ -15,6 +15,8 @@ extends YarnDialoguePresenter
 signal line_presented(sender: String, text: String)
 ## Choices were put on screen (for logs and tests).
 signal choices_presented(labels: Array[String])
+## Nobody picked a choice in time, so the hidden #timeout choice was taken.
+signal reply_timed_out
 
 # Speaker names with special meaning (see the writing guide §3).
 
@@ -116,6 +118,7 @@ func run_options(options: Array[YarnOption], token: YarnCancellationToken = null
 		waited += get_process_delta_time()
 		if timeout_option >= 0 and waited >= timeout_seconds:
 			state.choice = timeout_option
+			reply_timed_out.emit()
 	if not is_instance_valid(view):
 		return -1
 	view.choice_selected.disconnect(on_choice)

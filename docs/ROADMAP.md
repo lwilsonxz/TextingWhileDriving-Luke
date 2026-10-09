@@ -353,10 +353,23 @@ control of both at all times, and the danger comes from where they choose to loo
   the first 150 m of the test course) and leaves the road. Worth a look in playtests: it may be the
   car's setup, or fine as "you have to steer".
 
-### B4. Level flow (2–4 days)
-- Level start → triggers (time/position) start threads → finish line → results screen (violations,
-  messages sent, time) → next level
-- Save story variables between levels, which is the seed of the persistent "metroidvania" layer
+### B4. Level flow ✅ done
+- **Title screen** (now the main scene): Continue (when there's saved progress), New game, Quit.
+- **`GameFlow` autoload:** plays the levels in the order set in `game/levels/level_order.tres`
+  (designers edit the list). For now it's the test course, then the level template as a stand-in
+  second level.
+- **Results screen** at the finish line: time, traffic violations (each listed), crashes, messages
+  sent, replies missed. **Enter** goes to the next level (or back to the title after the last),
+  **R** retries.
+- **Story variables carry over between levels and are saved** (`user://save.cfg`) after each level,
+  with which level is next. **Continue** picks up from there.
+- **Retrying** (from the results or the "level failed" screen) puts the story variables back to how
+  they were when the level started, so a failed attempt's choices don't stick.
+- **Only runs started from the title screen save.** Playing one level with F6 (or a test) shows the
+  results but never touches saved progress.
+- **Art:** the title and results screens are code-made placeholders (`docs/ART_PLACEHOLDERS.md`).
+- **Tests:** `test_level_flow.gd` (in CI) plays the whole flow with its own save file.
+- **Later:** a level select, an options menu, more than one save slot, and saving mid-level.
 
 ### B5. Streamer juice (only after the loop is fun)
 - Physics chaos, crash slow-mo, absurd consequences, clip-friendly moments

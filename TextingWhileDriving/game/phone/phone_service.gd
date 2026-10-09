@@ -32,8 +32,13 @@ var delay_scale := 1.0:
 			_players[project].presenter.delay_scale = value
 
 ## Every story variable ($mom_trust, ...), shared by all conversations. Variables
-## not set yet read as their <<declare>> value.
+## not set yet read as their <<declare>> value. GameFlow saves and restores them.
 var storage: YarnInMemoryVariableStorage
+
+## Messages the player typed and sent in this level (for the results screen).
+var messages_sent := 0
+## Replies the player didn't pick in time, so the conversation moved on without them.
+var replies_missed := 0
 
 # One dialogue runner and presenter per Yarn project (Yarn ties a runner to one
 # project): project path -> {runner, presenter}.
@@ -55,6 +60,9 @@ func _ready() -> void:
 ## Called by the car's phone when it appears: conversations will play on `view`.
 func attach_view(view: ChatView) -> void:
 	_view = view
+	# A new phone means a new level: start its counts from zero.
+	messages_sent = 0
+	replies_missed = 0
 	for project in _players:
 		_players[project].presenter.view = view
 	_play_next()
@@ -87,6 +95,10 @@ func prepare(project := DEFAULT_PROJECT) -> void:
 	var presenter := ChatPresenter.new()
 	presenter.view = _view
 	presenter.delay_scale = delay_scale
+	presenter.line_presented.connect(func(sender: String, _text: String):
+		if sender == ChatPresenter.PLAYER:
+			messages_sent += 1)
+	presenter.reply_timed_out.connect(func(): replies_missed += 1)
 	runner.add_child(presenter)
 	runner.add_presenter(presenter)
 	runner.dialogue_completed.connect(_on_finished)

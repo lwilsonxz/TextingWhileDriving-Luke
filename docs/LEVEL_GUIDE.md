@@ -24,7 +24,8 @@ The template is a short straight road with everything a level needs:
 | `car` | The player's car. Leave it anywhere: it's moved to `Spawn` when the level starts. |
 | `WorldEnvironment`, `DirectionalLight3D` | Sky and sun. |
 
-Press **F6** (Run Current Scene) to drive it. **F5** always runs the test course instead.
+Press **F6** (Run Current Scene) to drive it. **F5** runs the whole game from the title screen.
+Playing a level with F6 shows its results at the finish, but never touches saved progress.
 
 ---
 
@@ -103,6 +104,10 @@ the scene to refresh the coloured box.
 - [ ] Every text trigger names a real conversation node. Try the conversation in the dialogue
       playtest first (see the [writing guide](WRITING_GUIDE.md), §11).
 - [ ] You drove it start to finish with **F6**.
+
+**Put it in the game:** open `game/levels/level_order.tres` and add your level to the **Levels** list in
+the Inspector, where it should come in the order (drag to reorder). The list is the order players
+play the levels in. New game starts at the first.
 
 Then share it like any other change: a branch, a commit and a pull request to this fork's `main`
 (see the Windows guide, §6). CI loads every scene, so a level that errors when it loads is caught.

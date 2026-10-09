@@ -28,8 +28,9 @@ The short version:
    tools/setup_yarn_spinner.sh                                          # macOS / Linux / Git Bash
    powershell -ExecutionPolicy Bypass -File tools\setup_yarn_spinner.ps1   # Windows PowerShell
    ```
-4. Open `TextingWhileDriving/project.godot` in Godot and press F5. The main scene is the test course
-   (`game/levels/test_course.tscn`); `game/levels/main.tscn` is the old sandbox with ramps.
+4. Open `TextingWhileDriving/project.godot` in Godot and press F5. The game opens on the title screen;
+   **New game** starts the first level (the test course). To play one scene directly, open it and
+   press F6. `game/levels/main.tscn` is the old sandbox with ramps.
 
 ## Playing
 
@@ -42,7 +43,8 @@ The short version:
 | Road / rear / left window view | D-pad ↑ / ↓ / ← | F3 / F1 / F2 |
 | Pick a reply on the phone | | click it |
 | Type the reply / send / delete | | type / Enter / Backspace |
-| Try again after failing a level | Start | R |
+| Try again (after failing, or on the results screen) | Start | R |
+| Next level (on the results screen) | A | Enter |
 | Quit | | Escape |
 
 You control the car and the phone at the same time, always: nothing locks the driving while you
@@ -65,6 +67,7 @@ TextingWhileDriving/          the Godot project
 └── game/
     ├── car/                  the car, its cameras and models
     ├── debug/                developer tools, e.g. the dialogue playtest scene
+    ├── flow/                 level order, next level, saving (GameFlow)
     ├── levels/               playable scenes (test_course.tscn; main.tscn is the ramps sandbox)
     ├── phone/                the in-car phone and its conversation UI
     ├── rules/                traffic rules, the level's record (LevelState), the course, conversation triggers
@@ -102,6 +105,9 @@ godot --headless --path TextingWhileDriving --script res://../tools/tests/test_r
 
 # Level template and pieces
 godot --headless --path TextingWhileDriving --script res://../tools/tests/test_level_pieces.gd
+
+# Level flow: title, results, next level, retry, saving and continuing
+godot --headless --path TextingWhileDriving --script res://../tools/tests/test_level_flow.gd
 
 # Validator tests
 godot --headless --script tools/tests/test_dialogue_validator.gd

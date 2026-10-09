@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="LevelOrder" format=3]
+
+[ext_resource type="Script" path="res://game/flow/level_order.gd" id="1_order"]
+
+[resource]
+script = ExtResource("1_order")
+levels = Array[String](["res://game/levels/test_course.tscn", "res://game/levels/level_template.tscn"])

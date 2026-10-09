@@ -161,7 +161,8 @@ N seconds, it's picked for them. This is how ignoring someone because you're dri
 ## 7. Story variables
 
 Variables remember what happened (trust levels, lies told, who was ignored) across conversations
-and levels, and are saved with the game.
+and levels, and are saved with the game after each level. If the player fails or retries a level,
+the variables go back to what they were when that level started.
 
 - **Declare every variable once, in `dialogue/Variables.yarn`**, with a starting value and a comment
   (see [`docs/writing/Variables.yarn`](writing/Variables.yarn)). The compiler only *warns* about
