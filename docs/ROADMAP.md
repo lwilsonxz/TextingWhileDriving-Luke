@@ -287,9 +287,9 @@ a win state, and at least one story variable that carries into a second short dr
 - **The in-car phone runs real conversations.** `ChatView` (A4) is on the phone's screen, replacing
   the 2024 typing test. It's drawn at 2× for sharp text and unshaded so it's readable in any light.
 - **Input from the 3D phone:** keys go to the screen for typing, and mouse clicks are traced onto the
-  quad, so choices can be clicked on the phone in the car. By default this only works while looking
-  at the phone. **F8** switches that (a new playtest option): "typing needs a glance" vs "type without
-  looking".
+  quad, so choices can be clicked on the phone in the car. This works at all times, looking at the
+  phone or not (the "Texting and driving" decision). **F8** switches to "only while looking" as a
+  playtest variant.
 - **Typing challenge:** exact match with live red typos, as in the playtest scene (`TypingRule` keeps
   the comparison swappable for typo-tolerance experiments).
 - **`PhoneService` autoload (the first part of A5):**

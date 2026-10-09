@@ -34,18 +34,21 @@ told through the conversations on your phone. Built with Godot 4.6 (GDScript onl
 | Handbrake | B | Right Ctrl |
 | Look at the phone | LB | F4 |
 | Road / rear / left window view | D-pad ↑ / ↓ / ← | F3 / F1 / F2 |
-| Pick a reply on the phone | | click it (while looking at the phone) |
-| Type the reply / send / delete | | type / Enter / Backspace (while looking at the phone) |
+| Pick a reply on the phone | | click it |
+| Type the reply / send / delete | | type / Enter / Backspace |
 | Try again after failing a level | Start | R |
 | Quit | | Escape |
 
+You control the car and the phone at the same time, always: nothing locks the driving while you
+text, or the phone while you drive. Where you look is up to you.
+
 The test course has a stop sign, a 50 km/h zone on the far straight, and counts leaving the road.
-Three violations or a crash fails the level. Mom texts just after the stop sign. For now that's the writing template's
-placeholder conversation; it switches to a real one once writers add it to `dialogue/`.
+Three violations or a crash fails the level. Mom texts just after the stop sign. For now that's the
+writing template's placeholder conversation; it switches to a real one once writers add it to `dialogue/`.
 
 Playtest options (saved between sessions): **F6** switches the phone glance between toggle and hold,
-**F7** moves the phone to the next placement, **F8** switches whether typing needs a glance at the
-phone.
+**F7** moves the phone to the next placement, **F8** makes the phone take typing and clicks only
+while you look at it (a playtest variant; by default it always takes them).
 
 ## Layout
 
