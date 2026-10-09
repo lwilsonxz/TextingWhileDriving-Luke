@@ -3,11 +3,15 @@
 A physics-y driving game where you text while you drive. Underneath the chaos, it's a story game
 told through the conversations on your phone. Built with Godot 4.6 (GDScript only), for Windows.
 
+- **New here? Setting up on Windows, playtesting and writing:** [`docs/GETTING_STARTED_WINDOWS.md`](docs/GETTING_STARTED_WINDOWS.md)
 - **Plans and decisions:** [`docs/ROADMAP.md`](docs/ROADMAP.md)
 - **Writing dialogue:** [`docs/WRITING_GUIDE.md`](docs/WRITING_GUIDE.md)
 - **Reading the code:** [`docs/CODE_TOUR.md`](docs/CODE_TOUR.md)
 
 ## Setup
+
+Step-by-step for a fresh Windows machine: [`docs/GETTING_STARTED_WINDOWS.md`](docs/GETTING_STARTED_WINDOWS.md).
+The short version:
 
 1. **Godot 4.6.3** (the standard build, not .NET): <https://godotengine.org/download/archive/4.6.3-stable/>
 2. **The Yarn compiler**, used to compile dialogue. Install the [.NET SDK](https://dotnet.microsoft.com/download)

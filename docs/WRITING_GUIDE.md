@@ -16,6 +16,9 @@ game turns these files into the conversations on the in-game phone.
 
 ## 1. Setup
 
+Setting up a Windows machine from scratch (tools, playtesting, sharing your work) is covered step by
+step in [GETTING_STARTED_WINDOWS.md](GETTING_STARTED_WINDOWS.md). Just for writing, you need:
+
 1. Install [VS Code](https://code.visualstudio.com/) and the **Yarn Spinner** extension (search
    "Yarn Spinner" in the Extensions panel).
 2. Clone the fork: `https://github.com/lwilsonxz/TextingWhileDriving-Luke`.
