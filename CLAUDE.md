@@ -16,6 +16,12 @@
   `tools/setup_yarn_spinner.sh`. Bump the pinned commit there to upgrade.
 - Before pushing, run the checks in the README's "Checks" section (dialogue validator, scene smoke
   check). CI runs both.
+- **Document as you go.** Every change ships with its documentation, in the same PR:
+  - **Code:** plain-language comments in the style of the existing code. Each script starts with what
+    it's for, and non-obvious functions and settings say what they do and why.
+  - **Code tour:** add new scripts, scenes and tests to `docs/CODE_TOUR.md` (the right section, the
+    tools table, and the reading order where it fits), and update entries the change makes wrong.
+  - **Visuals:** see the art rule below.
 - **Art: use existing assets; don't make your own.** If something visual has to be made or changed
   (a UI, a model, a material, a sky...), mark it `ART PLACEHOLDER` in the code and list it in
   `docs/ART_PLACEHOLDERS.md`, so human artists can replace it.
