@@ -93,7 +93,7 @@ Press **F5** (or the ▶ button at the top right). The test course starts in its
 
 - **Controls:** the table under "Playing" in the [README](../README.md#playing). In short: arrow keys
   (or a gamepad) drive, **F4** (or LB) looks at the phone, click a reply on the phone, type the
-  message exactly and press **Enter**.
+  message exactly and press **Enter**. Typing works whether or not you're looking at the phone.
 - **You always control both.** The car keeps going while you text, and you can steer and brake
   while looking at the phone. The danger is where you choose to look.
 - **What happens:** Mom texts just after the stop sign, with the placeholder conversation from the
@@ -102,7 +102,8 @@ Press **F5** (or the ▶ button at the top right). The test course starts in its
 - **Playtest options** (saved between sessions):
   - **F6** switches the phone glance between tap-to-toggle and hold.
   - **F7** moves the phone to the next spot in the car.
-  - **F8** switches whether typing needs you to be looking at the phone.
+  - **F8** makes the phone take typing and clicks only while you look at it (a variant to try; by
+    default it always does).
 - **Escape** quits.
 
 Before playtesting new changes from others: `git pull`, then run the setup script from step 2 again
@@ -188,5 +189,5 @@ this.
 | Godot shows errors about `addons/yarn_spinner` or a missing plugin | Run the setup script again (§2), then restart Godot. |
 | "running scripts is disabled on this system" | Run the setup script exactly as written in §2: the `-ExecutionPolicy Bypass` part allows it for that one command. |
 | My `.yarn` change doesn't show up in the game | Switch to the Godot window so it recompiles, then check the Output panel for errors. Run the validator (§5) for a clearer message. |
-| Nothing happens when I type on the phone | Look at the phone first (F4 or LB), or press F8 to allow typing without looking. Keys only type while a reply is being written. |
+| Nothing happens when I type on the phone | Keys only type while a reply is being written: click a reply first. If you pressed F8, the phone only takes typing while you look at it (F4 or LB); press F8 again to switch back. |
 | The text on the phone is hard to read | Play fullscreen or in a bigger window, or try another placement (F7). Readability is still being tuned. |
