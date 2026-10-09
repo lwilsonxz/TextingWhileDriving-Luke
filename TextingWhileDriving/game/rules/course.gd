@@ -31,6 +31,14 @@ var _checkpoints: Array[Checkpoint] = []
 var _hud: Label
 
 
+## LevelState finds the level's Course through this group.
+const GROUP := &"course"
+
+
+func _enter_tree() -> void:
+	add_to_group(GROUP)
+
+
 func _ready() -> void:
 	# Pieces join their groups as they enter the tree, before any _ready runs.
 	# Only take the ones in this level (another level could be loaded too).

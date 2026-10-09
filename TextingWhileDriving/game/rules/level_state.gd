@@ -15,6 +15,10 @@ extends Node
 ## - a conversation says so (<<fail_level "reason">>).
 ## Press R (or Start) on the failed screen to try again.
 ##
+## It also connects the level to GameFlow: it reports the level starting, and
+## when the Course's finish line is crossed it sends the level's summary
+## (time, violations, crashes, messages) for the results screen.
+##
 ## ART PLACEHOLDER: the warning text and the "level failed" screen are plain
 ## labels and a dark overlay made in code; see docs/ART_PLACEHOLDERS.md.
 
@@ -41,6 +45,8 @@ var violations: Array[Dictionary] = []
 var crashes := 0
 var is_failed := false
 var fail_reason := ""
+## true once the car has crossed the finish line. Nothing counts after that.
+var is_finished := false
 
 # For each rule, whether the car broke it the last time it was checked
 # (rule name -> bool). ran_stop_sign() reads this.
@@ -64,11 +70,19 @@ func _ready() -> void:
 	add_to_group(GROUP)
 	_set_driving(true)  # a restart after failing turns driving back on
 	_build_ui()
-	# Listen for the player's car crashing, once the level has finished loading.
+	# Once the level has finished loading: listen for the car crashing and the
+	# course finishing, and tell GameFlow the level has started.
 	await get_tree().process_frame
 	var car := get_tree().get_first_node_in_group(&"player_car")
 	if car != null and car.has_signal(&"crashed"):
 		car.crashed.connect(record_crash)
+	var level := owner if owner != null else get_parent()
+	for course in get_tree().get_nodes_in_group(Course.GROUP):
+		if level.is_ancestor_of(course):
+			course.finished.connect(_on_course_finished)
+	var flow := get_node_or_null("/root/GameFlow")
+	if flow != null:
+		flow.level_started(level)
 
 
 func _physics_process(delta: float) -> void:
@@ -84,7 +98,7 @@ func _process(delta: float) -> void:
 ## A traffic rule was broken. `description` is shown to the player
 ## ("Ran a stop sign").
 func record_violation(rule: StringName, description: String) -> void:
-	if is_failed:
+	if is_failed or is_finished:
 		return
 	violations.append({"rule": rule, "description": description, "time": _time})
 	_last_outcome[rule] = true
@@ -113,7 +127,7 @@ func violation_count(rule := &"") -> int:
 
 ## The car hit something hard. Connected to the car's `crashed` signal.
 func record_crash(impact_kmh: float) -> void:
-	if is_failed:
+	if is_failed or is_finished:
 		return
 	crashes += 1
 	show_warning("CRASH! (%d km/h)" % roundi(impact_kmh))
@@ -124,7 +138,7 @@ func record_crash(impact_kmh: float) -> void:
 
 ## Fails the level: stops the car's controls and shows the failed screen.
 func fail(reason: String) -> void:
-	if is_failed:
+	if is_failed or is_finished:
 		return
 	is_failed = true
 	fail_reason = reason
@@ -134,9 +148,36 @@ func fail(reason: String) -> void:
 	failed.emit(reason)
 
 
-## Starts the level again from scratch.
+## Starts the level again from scratch (through GameFlow, which also puts the
+## story variables back to how they were when the level started).
 func restart() -> void:
-	get_tree().reload_current_scene()
+	var flow := get_node_or_null("/root/GameFlow")
+	if flow != null:
+		flow.restart_level()
+	else:
+		get_tree().reload_current_scene()
+
+
+## Everything the results screen shows about this level.
+func summary(seconds: float) -> Dictionary:
+	var phone := get_node_or_null("/root/PhoneService")
+	return {
+		"seconds": seconds,
+		"violations": violations.duplicate(),
+		"crashes": crashes,
+		"messages_sent": phone.messages_sent if phone != null else 0,
+		"replies_missed": phone.replies_missed if phone != null else 0,
+	}
+
+
+# The car crossed the finish line: stop counting, take the car's controls away,
+# and hand the summary to GameFlow for the results screen.
+func _on_course_finished(seconds: float) -> void:
+	is_finished = true
+	_set_driving(false)
+	var flow := get_node_or_null("/root/GameFlow")
+	if flow != null:
+		flow.level_completed(summary(seconds))
 
 
 ## Shows a message at the top of the screen for a couple of seconds.

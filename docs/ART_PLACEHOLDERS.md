@@ -19,6 +19,8 @@ get a feature working, mark it `ART PLACEHOLDER` in the code and add it to this 
 | **The phone itself** | `game/phone/phone.tscn`, `phone.gd` | A flat screen (a quad) with no phone body, shown unshaded so it's readable. It's scaled to real phone size, and `PhoneMount` places it in one of five spots in the car. | A phone model (case, bezel, maybe a hand or mount for each placement) with the screen as its display. |
 | **Traffic warnings** | `game/rules/level_state.gd` | Red text at the top of the screen ("TRAFFIC VIOLATION: Ran a stop sign", "CRASH! (45 km/h)"). | Styled HUD warnings. |
 | **"Level failed" screen** | `game/rules/level_state.gd` | A dark overlay with white text: the reason and "Press R (or Start) to try again". | A designed fail screen. |
+| **Results screen** | `game/ui/results_screen.gd` | A dark overlay with "LEVEL COMPLETE", the time, violations (listed), crashes, messages sent and replies missed, plus Retry and Next level buttons, made in code. | A designed results screen. |
+| **Title screen** | `game/ui/title_screen.gd` | The game's name in plain text on a dark background, with Continue / New game / Quit buttons, made in code. | A designed title screen (logo, background, menu). |
 | **Timer and checkpoint HUD** | `game/rules/course.gd` | White text with an outline, top left: "0:42.1    Checkpoints 1/3", then "Finished in …". | A designed HUD. |
 | **Checkpoints and finish line** | `game/world/pieces/checkpoint.gd`, `finish_line.gd` | Invisible in the game: no art existed. | Something to drive through: an arch, flags, cones, a chequered line, a banner. |
 | **Speed limit zones** | `game/rules/speed_zone.gd`, `game/world/pieces/speed_zone.tscn` | Invisible in the game: there's no speed limit sign model. | A speed limit sign (the limit is a setting, so the number should be changeable). |
@@ -45,7 +47,8 @@ For reference, the art that was already in the project and is reused:
   speedometer label on its HUD.
 - **Ground texture** (`game/world/textures/texture_10.png`): used by the ramps sandbox (`main.tscn`).
 - **Victory screen** (`game/ui/victory_screen.tscn`, 2024): no longer used. The old typing prototype
-  that showed it was replaced in B2. The level flow (roadmap B4) needs a results screen.
+  that showed it was replaced in B2; the results screen (B4) took over its role. It's a single
+  "YOU WIN" label, so there was nothing to reuse.
 
 **Changed, not replaced:** the 2024 phone quad is now scaled to real phone size and placed by
 `PhoneMount`. The ramps sandbox's texture reference was pointed at the source PNG (it pointed into

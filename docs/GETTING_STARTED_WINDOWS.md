@@ -89,7 +89,10 @@ The first push opens a browser window to sign in to GitHub.
 
 ## 4. Playtest
 
-Press **F5** (or the ▶ button at the top right). The test course starts in its own window.
+Press **F5** (or the ▶ button at the top right). The game starts in its own window on the title
+screen: **New game** starts the first level (the test course). Finishing a level shows your results;
+**Enter** goes on to the next level, **R** tries again. Progress (and the story so far) is saved after
+each level, so **Continue** picks up from there.
 
 - **Controls:** the table under "Playing" in the [README](../README.md#playing). In short: arrow keys
   (or a gamepad) drive, **F4** (or LB) looks at the phone, click a reply on the phone, type the
@@ -140,7 +143,7 @@ sign"). See the writing guide §11.
    - **Yarn Project:** clear it (click the field's ↺ revert arrow) so it uses the game's dialogue.
    - **Node:** set it to your first node, e.g. `Mom_L1_Start`.
    - **Thread:** set it to who's texting, e.g. `Mom`.
-3. Press **F5** and drive past the stop sign.
+3. Press **F6** (Run Current Scene, which skips the title screen) and drive past the stop sign.
 
 Only commit that change when your conversation is meant to be the course's. Otherwise put it back
 (`git checkout -- TextingWhileDriving/game/levels/test_course.tscn`).

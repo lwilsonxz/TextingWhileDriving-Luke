@@ -74,6 +74,7 @@ func _test_trigger_tap_and_type() -> void:
 	_check(transcript.has("Me: placeholder text the player types"), "the typed message is sent")
 	_check(not transcript.is_empty() and transcript[-1] == "Mom: placeholder reply", "Mom replies (got %s)" % [transcript])
 	_check(service.storage.try_get_value("$mom_l1_answered").value == true, "the story variable is set")
+	_check(service.messages_sent == 1 and service.replies_missed == 0, "one message sent, none missed (for the results screen)")
 
 
 func _test_conversation_reads_driving() -> void:
@@ -94,6 +95,7 @@ func _test_conversation_reads_driving() -> void:
 	_check(transcript.has("Mom: placeholder line that only appears if the player ran the stop sign"),
 		"nobody answered, and the branch for running the stop sign plays (got %s)" % [transcript])
 	_check(transcript.has("* placeholder system notice"), "System: lines show as notices")
+	_check(service.replies_missed == 1, "the ignored reply counts as missed")
 
 
 func _test_typing_without_looking_option() -> void:
