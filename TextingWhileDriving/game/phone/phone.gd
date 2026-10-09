@@ -6,6 +6,10 @@ extends Node3D
 ## SubViewport, and that drawing is the texture of a flat quad (ViewportQuad)
 ## in the car, so 2D UI appears on a 3D object.
 ##
+## ART PLACEHOLDER: the phone is only a flat screen; there's no phone body
+## model (case, bezel, buttons), and the screen is shown unshaded. See
+## docs/ART_PLACEHOLDERS.md.
+##
 ## A SubViewport drawn on a quad doesn't get any input by itself, so this
 ## script passes it on: key presses as they are (for typing), and mouse
 ## events moved to where the mouse points on the quad (for tapping choices).

@@ -21,10 +21,10 @@ func _initialize() -> void:
 	_check(course.checkpoint_count() == 3, "the course has 3 checkpoints")
 	await _put_car_in("Course/Finish")
 	_check(_events == ["blocked 3"], "crossing the finish first doesn't count (got %s)" % [_events])
-	await _put_car_in("Course/Checkpoints/Checkpoint2")
+	await _put_car_in("Course/Checkpoint2")
 	_check(course.next_checkpoint == 0, "checkpoint 2 before checkpoint 1 doesn't count")
 	for i in 3:
-		await _put_car_in("Course/Checkpoints/Checkpoint%d" % (i + 1))
+		await _put_car_in("Course/Checkpoint%d" % (i + 1))
 	_check(course.next_checkpoint == 3, "checkpoints 1, 2, 3 in order count")
 	_check(_events.slice(1) == ["checkpoint 1/3", "checkpoint 2/3", "checkpoint 3/3"],
 		"checkpoint_reached fires for each (got %s)" % [_events.slice(1)])
@@ -79,7 +79,7 @@ func _load_level() -> void:
 ## Moves the car into a gate (and back out to a spot clear of all gates).
 func _put_car_in(gate_path: String) -> void:
 	var gate: Node3D = level.get_node(gate_path)
-	_place_car(gate.global_position + Vector3(0, -2.5, 0))
+	_place_car(gate.global_position + Vector3(0, 0.5, 0))
 	await _ticks(5)
 	_place_car(Vector3(48, 0.5, -84))  # middle of the loop, away from the road
 	await _ticks(5)

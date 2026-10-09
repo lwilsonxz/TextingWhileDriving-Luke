@@ -6,6 +6,11 @@ extends PanelContainer
 ## Knows nothing about Yarn; ChatPresenter drives it. Builds its own child
 ## nodes, so it can be dropped into any scene (the playtest scene and the
 ## in-car phone both use it).
+##
+## ART PLACEHOLDER: the whole look (colours, bubbles, fonts, layout, typing box,
+## reply countdown bar) is a functional mock-up made in code, loosely like a
+## phone messaging app. The colours and sizes are constants at the top so an
+## artist's design can replace them; see docs/ART_PLACEHOLDERS.md.
 
 ## The player clicked a choice button (index into the list given to show_choices).
 signal choice_selected(index: int)

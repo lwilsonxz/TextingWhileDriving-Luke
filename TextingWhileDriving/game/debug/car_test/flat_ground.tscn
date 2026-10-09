@@ -9,6 +9,7 @@ size = Vector3(20000, 2, 20000)
 size = Vector3(20000, 2, 20000)
 
 [node name="FlatGround" type="Node3D"]
+editor_description = "ART PLACEHOLDER (test-only): a plain plane for car tests. See docs/ART_PLACEHOLDERS.md."
 
 [node name="Ground" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)

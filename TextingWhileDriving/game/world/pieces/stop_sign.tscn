@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/rules/stop_sign.gd" id="1_stop"]
+[ext_resource type="PackedScene" path="res://game/world/models/stop_sign_1.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_zone"]
+size = Vector3(12, 5, 2)
+
+[node name="StopSign" type="Area3D"]
+collision_layer = 2
+collision_mask = 2
+monitorable = false
+script = ExtResource("1_stop")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+shape = SubResource("BoxShape3D_zone")
+
+[node name="stop_sign_1" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 0, 1.5)

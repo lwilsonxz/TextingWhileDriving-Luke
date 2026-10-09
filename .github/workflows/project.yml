@@ -13,6 +13,7 @@ on:
       - "tools/tests/test_course.gd"
       - "tools/tests/test_phone.gd"
       - "tools/tests/test_rules.gd"
+      - "tools/tests/test_level_pieces.gd"
       - "tools/setup_yarn_spinner.sh"
       - ".github/workflows/project.yml"
   push:
@@ -26,6 +27,7 @@ on:
       - "tools/tests/test_course.gd"
       - "tools/tests/test_phone.gd"
       - "tools/tests/test_rules.gd"
+      - "tools/tests/test_level_pieces.gd"
       - "tools/setup_yarn_spinner.sh"
       - ".github/workflows/project.yml"
   workflow_dispatch:
@@ -94,3 +96,6 @@ jobs:
 
       - name: Test the traffic rules
         run: tools/ci/run_godot.sh godot --headless --path TextingWhileDriving --script res://../tools/tests/test_rules.gd
+
+      - name: Test the level template and pieces
+        run: tools/ci/run_godot.sh godot --headless --path TextingWhileDriving --script res://../tools/tests/test_level_pieces.gd

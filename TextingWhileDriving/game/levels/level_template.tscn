@@ -1,0 +1,76 @@
+[gd_scene format=3]
+
+[ext_resource type="MeshLibrary" path="res://game/world/models/roads-v4.tres" id="1_roads"]
+[ext_resource type="Script" path="res://game/rules/course.gd" id="2_course"]
+[ext_resource type="Script" path="res://game/rules/level_state.gd" id="3_state"]
+[ext_resource type="Script" path="res://game/rules/off_road.gd" id="4_offrd"]
+[ext_resource type="PackedScene" path="res://game/world/pieces/spawn.tscn" id="5_spawn"]
+[ext_resource type="PackedScene" path="res://game/world/pieces/checkpoint.tscn" id="6_cp"]
+[ext_resource type="PackedScene" path="res://game/world/pieces/finish.tscn" id="7_fin"]
+[ext_resource type="PackedScene" path="res://game/car/Doge.tscn" id="8_car"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8igth"]
+
+[sub_resource type="Sky" id="Sky_q2bub"]
+sky_material = SubResource("ProceduralSkyMaterial_8igth")
+
+[sub_resource type="Environment" id="Environment_g1pjg"]
+background_mode = 2
+sky = SubResource("Sky_q2bub")
+tonemap_mode = 2
+ssr_enabled = true
+ssao_enabled = true
+ssao_radius = 1.5
+ssao_intensity = 0.6
+ssil_enabled = true
+glow_enabled = true
+
+[node name="LevelTemplate" type="Node3D"]
+editor_description = "Start a new level by duplicating this scene (FileSystem panel: right-click > Duplicate). See docs/LEVEL_GUIDE.md."
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+editor_description = "ART PLACEHOLDER: Godot's default procedural sky. See docs/ART_PLACEHOLDERS.md."
+environment = SubResource("Environment_g1pjg")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.80696, 0.183487, -0.56138, 0, 0.950516, 0.310676, 0.590606, -0.250704, 0.767029, 0, 43.5687, 0)
+shadow_enabled = true
+directional_shadow_max_distance = 200.0
+
+[node name="Roads" type="GridMap" parent="."]
+editor_description = "Paint roads here with the road kit (see docs/LEVEL_GUIDE.md). Tiles are 12 m."
+transform = Transform3D(6, 0, 0, 0, 6, 0, 0, 0, 6, 0, 0, 0)
+mesh_library = ExtResource("1_roads")
+data = {
+"cells": PackedInt32Array(-65536, 65535, 0, -65536, 65534, 0, -65536, 65533, 0, -65536, 65532, 0, -65536, 65531, 0, -65536, 65530, 0, -65536, 65529, 0, -65536, 65528, 0, -65536, 65527, 0, -65536, 65526, 0, -65536, 65525, 0, -65536, 65524, 0)
+}
+metadata/_editor_floor_ = Vector3(0, -1, 0)
+
+[node name="LevelState" type="Node" parent="."]
+editor_description = "The level's driving record. Set when the level fails here."
+script = ExtResource("3_state")
+max_violations = 3
+fail_on_crash = true
+
+[node name="Course" type="Node3D" parent="."]
+editor_description = "Checkpoints (in number order), the finish line, and the timer. Checkpoints and the finish can go anywhere in the level."
+script = ExtResource("2_course")
+
+[node name="Checkpoint1" parent="Course" instance=ExtResource("6_cp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -48)
+
+[node name="Finish" parent="Course" instance=ExtResource("7_fin")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -84)
+
+[node name="OffRoad" type="Area3D" parent="." node_paths=PackedStringArray("roads")]
+editor_description = "Counts leaving the road tiles as a violation."
+monitorable = false
+script = ExtResource("4_offrd")
+roads = NodePath("../Roads")
+
+[node name="Spawn" parent="." instance=ExtResource("5_spawn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -6)
+
+[node name="car" parent="." instance=ExtResource("8_car")]
+editor_description = "The player's car. Leave it anywhere: it's moved to Spawn when the level starts."
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.5, -6)

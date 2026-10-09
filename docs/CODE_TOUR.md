@@ -35,13 +35,29 @@ Doge.tscn  (the car you drive; BaseCar.tscn plus the Doge model)
 
 ## Levels
 
+How to build one (for designers): `docs/LEVEL_GUIDE.md`.
+
 - **`game/levels/test_course.tscn`:** the main scene. Roads are a GridMap painted from the road kit in
-  `game/world/models/roads-v4.tres`.
-- **`game/rules/course.gd`:** checkpoints in order, finish line, timer. Its signals are where level
+  `game/world/models/roads-v4.tres`; everything else is drag-in pieces.
+- **`game/levels/level_template.tscn`:** the starting point for new levels. Designers duplicate it.
+- **`game/world/pieces/`:** the drag-in level pieces. Each `.tscn` is a node with its script and
+  collision shape, ready to drop into a level:
+  - `spawn.tscn` (`spawn_point.gd`, `SpawnPoint`): moves the level's car here when the level starts.
+  - `checkpoint.tscn` (`Checkpoint`, with a `number`) and `finish.tscn` (`FinishLine`): they join
+    groups, and the `Course` finds them.
+  - `stop_sign.tscn`, `speed_zone.tscn`, `text_trigger.tscn`: the rules and trigger from
+    `game/rules/` with their shapes (and the stop sign model).
+  - **`piece_marker.gd` (`PieceMarker`):** draws each piece in the editor only (a coloured box, an
+    arrow, a label). The piece scripts are `@tool` so this runs in the editor. Each one starts with
+    `if Engine.is_editor_hint(): ... return`, so nothing else runs there.
+- **`game/rules/course.gd`:** finds the level's checkpoints (sorted by number) and finish line by
+  group, wherever they are in the level; it handles order and the timer. Its signals are where level
   flow (B4) will hook in.
 - **`game/rules/text_trigger.gd` (`TextTrigger`):** starts a conversation on the phone when the car
   drives in, or a set time after the level starts. The test course's `MomTexts` is one.
 - **`game/levels/main.tscn`:** the old ramps sandbox.
+
+Anything visual made in code is marked `ART PLACEHOLDER` and listed in `docs/ART_PLACEHOLDERS.md`.
 
 ## Traffic rules and the level's record
 
@@ -110,6 +126,7 @@ In the game, `PhoneService` owns the runners and presenters and the car's phone 
 | `tests/test_car.gd` | Driving targets, identical results at any frame rate, camera, phone placements |
 | `tests/test_course.gd` | Checkpoints, finish, timer, and a drive through the stop sign |
 | `tests/test_rules.gd` | Each traffic rule, crashes, failing a level and restarting, and the dialogue hooks that read them |
+| `tests/test_level_pieces.gd` | The level template: the car starts at the Spawn, checkpoints are sorted by number, the template drives start to finish, and pieces draw nothing in the game |
 | `tests/test_phone.gd` | The phone in the car: a trigger starts Mom's conversation; click a choice on the 3D phone and type the reply; the stop-sign branch; the queue |
 | `ci/run_godot.sh` | CI wrapper: fails on printed script errors and hangs, not just the exit code |
 | `setup_yarn_spinner.*` | Installs the (uncommitted) Yarn Spinner addon at a pinned version |
@@ -127,7 +144,8 @@ CI (`.github/workflows/`) runs all of these on pull requests. The commands are i
 5. `dialogue/dialogue_hooks.gd`: the contract between writers and code.
 6. `game/rules/traffic_rule.gd`, one rule (`stop_sign.gd`), then `level_state.gd`: how driving
    badly is counted.
-7. `game/rules/text_trigger.gd` and `game/rules/course.gd`: what a level hooks into.
+7. `game/world/pieces/` (start with `checkpoint.gd` and `piece_marker.gd`), then
+   `game/rules/course.gd`: how a level is put together.
 8. Tools when you want them. `tools/dialogue_validator.gd` is the longest file; its `_check_file`
    comment explains the approach.
 

@@ -6,7 +6,9 @@ told through the conversations on your phone. Built with Godot 4.6 (GDScript onl
 - **New here? Setting up on Windows, playtesting and writing:** [`docs/GETTING_STARTED_WINDOWS.md`](docs/GETTING_STARTED_WINDOWS.md)
 - **Plans and decisions:** [`docs/ROADMAP.md`](docs/ROADMAP.md)
 - **Writing dialogue:** [`docs/WRITING_GUIDE.md`](docs/WRITING_GUIDE.md)
+- **Building levels:** [`docs/LEVEL_GUIDE.md`](docs/LEVEL_GUIDE.md)
 - **Reading the code:** [`docs/CODE_TOUR.md`](docs/CODE_TOUR.md)
+- **Art made as placeholders (for artists to replace):** [`docs/ART_PLACEHOLDERS.md`](docs/ART_PLACEHOLDERS.md)
 
 ## Setup
 
@@ -67,7 +69,7 @@ TextingWhileDriving/          the Godot project
     ├── phone/                the in-car phone and its conversation UI
     ├── rules/                traffic rules, the level's record (LevelState), the course, conversation triggers
     ├── ui/                   menus and screens
-    └── world/                roads, signs and other level pieces
+    └── world/                the road kit and other models; pieces/ has the drag-in level pieces
 tools/                        command-line tools and their tests
 docs/                         roadmap, writing guide, spike results
 spikes/                       throwaway experiments
@@ -97,6 +99,9 @@ godot --headless --path TextingWhileDriving --script res://../tools/tests/test_p
 
 # Traffic rules, crashes, failing and restarting a level
 godot --headless --path TextingWhileDriving --script res://../tools/tests/test_rules.gd
+
+# Level template and pieces
+godot --headless --path TextingWhileDriving --script res://../tools/tests/test_level_pieces.gd
 
 # Validator tests
 godot --headless --script tools/tests/test_dialogue_validator.gd

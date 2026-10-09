@@ -2,10 +2,14 @@ class_name Course
 extends Node3D
 ## A drive from the start to the finish line through checkpoints, in order.
 ##
-## Checkpoints are the Area3D children of the `Checkpoints` node, in tree order;
-## `Finish` is an Area3D. Only the player's car counts. Crossing the finish before
-## every checkpoint does nothing (so a loop can start just past its finish line).
+## It finds the level's Checkpoint pieces (sorted by their `number`) and its
+## FinishLine by itself, wherever they are in the level, so there's nothing to
+## wire up. Only the player's car counts. Crossing the finish before every
+## checkpoint does nothing (so a loop can start just past its finish line).
 ## The timer runs on physics ticks, so it's exact at any frame rate.
+##
+## ART PLACEHOLDER: the timer/checkpoint HUD is a plain label made in code; see
+## docs/ART_PLACEHOLDERS.md.
 
 ## The car passed a checkpoint in the right order. `index` counts from 1.
 signal checkpoint_reached(index: int, total: int)
@@ -14,9 +18,6 @@ signal finish_blocked(checkpoints_missed: int)
 ## The car finished. Level flow (roadmap B4) listens for this.
 signal finished(seconds: float)
 
-## Where to find the checkpoints and the finish line, relative to this node.
-@export var checkpoints_path := NodePath("Checkpoints")
-@export var finish_path := NodePath("Finish")
 ## Show the timer and checkpoint count in the top-left corner.
 @export var show_hud := true
 
@@ -26,17 +27,27 @@ var next_checkpoint := 0
 var elapsed := 0.0
 var is_finished := false
 
-var _checkpoints: Array[Area3D] = []
+var _checkpoints: Array[Checkpoint] = []
 var _hud: Label
 
 
 func _ready() -> void:
-	# Listen to every checkpoint; each one reports its own position in the order.
-	for child in get_node(checkpoints_path).get_children():
-		if child is Area3D:
-			child.body_entered.connect(_on_checkpoint_entered.bind(_checkpoints.size()))
-			_checkpoints.append(child)
-	get_node(finish_path).body_entered.connect(_on_finish_entered)
+	# Pieces join their groups as they enter the tree, before any _ready runs.
+	# Only take the ones in this level (another level could be loaded too).
+	var level := owner if owner != null else get_parent()
+	for node in get_tree().get_nodes_in_group(Checkpoint.GROUP):
+		if level.is_ancestor_of(node):
+			_checkpoints.append(node)
+	_checkpoints.sort_custom(func(a, b): return a.number < b.number)
+	for i in _checkpoints.size():
+		if i > 0 and _checkpoints[i].number == _checkpoints[i - 1].number:
+			push_warning("Course: two checkpoints are number %d" % _checkpoints[i].number)
+		_checkpoints[i].body_entered.connect(_on_checkpoint_entered.bind(i))
+	var finishes := get_tree().get_nodes_in_group(FinishLine.GROUP).filter(func(n): return level.is_ancestor_of(n))
+	if finishes.size() != 1:
+		push_warning("Course: the level needs exactly one FinishLine (found %d)" % finishes.size())
+	for finish in finishes:
+		finish.body_entered.connect(_on_finish_entered)
 	if show_hud:
 		_build_hud()
 	_update_hud()

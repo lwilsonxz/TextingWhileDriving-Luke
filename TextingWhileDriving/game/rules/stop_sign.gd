@@ -1,3 +1,4 @@
+@tool
 class_name StopSign
 extends TrafficRule
 ## A stop sign. Traffic driving through the zone must (nearly) stop before
@@ -18,6 +19,10 @@ var _slowest_kmh := INF
 
 func _init() -> void:
 	rule = &"stop_sign"
+
+
+func marker_text() -> String:
+	return "STOP"
 
 
 func car_entered() -> void:

@@ -14,6 +14,9 @@ extends Node
 ## - the car crashes (if `fail_on_crash`),
 ## - a conversation says so (<<fail_level "reason">>).
 ## Press R (or Start) on the failed screen to try again.
+##
+## ART PLACEHOLDER: the warning text and the "level failed" screen are plain
+## labels and a dark overlay made in code; see docs/ART_PLACEHOLDERS.md.
 
 signal violation_recorded(rule: StringName, description: String)
 signal crashed(impact_kmh: float)

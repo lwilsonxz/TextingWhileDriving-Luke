@@ -391,19 +391,26 @@ knowing the code. It starts minimal and grows as levels need more.
     facing the wrong way) until you drive it.
   - The road kit's source file (Blender?) isn't in the repo, only the exported `.glb`.
 
-### C1. Level template and drag-in pieces (minimal, do first)
-- `levels/level_template.tscn`: duplicate it to start a level. It contains sky and light, a `Roads`
-  GridMap with the kit loaded, the car, and an empty `Course`.
-- **Prefab pieces in `game/world/pieces/`**, dragged in from the FileSystem dock:
-  - `Spawn` (where the car starts and which way it faces)
-  - `Checkpoint` and `Finish` (the Course picks up their order automatically)
-  - `StopSign` (trigger and model in one, already wired)
-  - `TextTrigger`: drive into it to start a phone conversation (`thread`, `node` fields). This is the
-    hook for B4's level flow and A5's `PhoneService`.
-- **Pieces are visible in the editor** (labelled, coloured boxes, a "this way" arrow) and invisible
-  in game, and snap to the 12 m road grid.
-- **`docs/LEVEL_GUIDE.md`:** a one-page how-to (paint roads, drop pieces, press F6), written for
-  designers, like the writing guide.
+### C1. Level template and drag-in pieces ✅ done
+- **`game/levels/level_template.tscn`:** duplicate it to start a level. It has a sky and light, a short
+  straight road (the road kit in a GridMap), `LevelState`, `Course` with a checkpoint and a finish,
+  `OffRoad`, a `Spawn`, and the car.
+- **Pieces in `game/world/pieces/`**, dragged in from the FileSystem panel:
+  - `spawn`: where the car starts and which way it faces;
+  - `checkpoint` (with a number) and `finish`: the Course finds them by itself, sorted by number,
+    anywhere in the level;
+  - `stop_sign` (zone and the existing model, already wired), `speed_zone`;
+  - `text_trigger` (thread, node, optional Yarn project, or a time delay).
+- **Visible in the editor only:** coloured boxes, a direction arrow and a label (`PieceMarker`).
+  Invisible in the game, except real art (the stop sign model).
+- **Snapping** uses Godot's own snap (6 m, 90°), set once per editor; the guide shows how. The pieces
+  don't force it, so they can still be placed freely.
+- **The test course is rebuilt from the pieces** (same layout and behaviour).
+- **`docs/LEVEL_GUIDE.md`:** the how-to for designers.
+- **Art:** checkpoints, the finish line and speed zones have no art yet. They're listed in
+  `docs/ART_PLACEHOLDERS.md` with everything else made in code.
+- **Tests:** `test_level_pieces.gd` (in CI). The editor markers were checked by opening the test
+  course in the editor (every piece drew its marker, with no errors).
 
 ### C2. Level checker (same idea as the dialogue validator)
 - **`tools/check_levels.gd`:** runs on every level in CI and when run by hand. It checks that:
