@@ -1,3 +1,4 @@
+@tool
 class_name TextTrigger
 extends Area3D
 ## Starts a conversation on the phone. Drop one into a level, give it a
@@ -8,15 +9,22 @@ extends Area3D
 ##   starts, wherever the car is (the shape isn't needed then).
 ## Each trigger fires once.
 ##
-## Roadmap C1 turns this into a drag-in level piece that's visible in the editor.
+## The drag-in piece is game/world/pieces/text_trigger.tscn. It's drawn in the
+## editor (PieceMarker) and invisible in the game.
 
 ## Fired when the conversation is handed to the phone.
 signal triggered(thread: String, node: String)
 
 ## The contact the conversation is with (shown at the top of the phone).
-@export var thread := ""
+@export var thread := "":
+	set(value):
+		thread = value
+		_redraw()
 ## The Yarn node the conversation starts at.
-@export var node := ""
+@export var node := "":
+	set(value):
+		node = value
+		_redraw()
 ## Which Yarn project the node is in. Empty means the game's dialogue
 ## (res://dialogue/Dialogue.yarnproject).
 @export_file("*.yarnproject") var yarn_project := ""
@@ -27,6 +35,9 @@ var has_fired := false
 
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		_redraw()
+		return
 	body_entered.connect(_on_body_entered)
 	var service := get_node_or_null("/root/PhoneService")
 	if service != null:
@@ -51,6 +62,11 @@ func fire() -> void:
 func _on_body_entered(body: Node3D) -> void:
 	if after_seconds < 0.0 and body.is_in_group(&"player_car"):
 		fire()
+
+
+# The editor marker: who texts, and from which node.
+func _redraw() -> void:
+	PieceMarker.draw(self, Color.DEEP_SKY_BLUE, "TEXT: %s\n%s" % [thread, node])
 
 
 func _project() -> String:

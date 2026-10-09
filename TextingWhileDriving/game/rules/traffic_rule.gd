@@ -1,3 +1,4 @@
+@tool
 class_name TrafficRule
 extends Area3D
 ## Base for traffic rules (stop sign, speed limit, staying on the road, ...).
@@ -7,6 +8,9 @@ extends Area3D
 ## Most rules are zones: an Area3D with a CollisionShape3D, active while the
 ## car is inside. A new rule extends this, uses `car_entered` / `car_exited` /
 ## `_physics_process` as it needs, and calls `broken()` or `obeyed()`.
+##
+## Rules run in the editor too (@tool), but only to draw their marker there
+## (PieceMarker); everything else starts in the game.
 
 ## Fired when the player's car breaks this rule.
 signal rule_broken(description: String)
@@ -19,6 +23,9 @@ var car: VehicleBody3D
 
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		redraw_marker()
+		return
 	body_entered.connect(func(body: Node3D):
 		if body.is_in_group(&"player_car"):
 			car = body
@@ -27,6 +34,17 @@ func _ready() -> void:
 		if body == car:
 			car_exited()
 			car = null)
+
+
+## Draws the rule in the editor: its zone, which way traffic drives, and
+## `marker_text()`. Call it again when a setting shown in the text changes.
+func redraw_marker() -> void:
+	PieceMarker.draw(self, Color.ORANGE_RED, marker_text(), true)
+
+
+## The editor marker's label. Rules override it.
+func marker_text() -> String:
+	return String(rule).capitalize()
 
 
 ## Called when the player's car drives into the zone. Override as needed.

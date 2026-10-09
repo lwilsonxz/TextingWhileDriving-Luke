@@ -8,6 +8,9 @@ extends Control
 ## - Story variables can be edited at any time, and game functions (ran_stop_sign(), ...) faked.
 ## - Back returns to the start of the previous node with its variables; Restart replays from the start.
 ## - Hidden #timeout choices and choices whose condition is false are shown greyed out, so they can be tested.
+##
+## ART PLACEHOLDER (writers' tool, not in the game): the panels are plain Godot
+## controls laid out in code. Low priority; see docs/ART_PLACEHOLDERS.md.
 
 ## Where to look for Yarn projects, and which one to open first.
 const DIALOGUE_ROOT := "res://"

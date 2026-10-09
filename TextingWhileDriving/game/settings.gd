@@ -6,6 +6,9 @@ extends Node
 ## F7 moves the phone to the next placement, F8 switches whether the phone only
 ## takes typing and clicks while the driver looks at it. A short note shows what
 ## changed.
+##
+## ART PLACEHOLDER: the note is a plain label made in code (a debug aid; may
+## not need art). See docs/ART_PLACEHOLDERS.md.
 
 signal changed(setting: StringName)
 
